@@ -11,6 +11,7 @@ import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -28,34 +29,53 @@ import java.util.ListIterator;
 public class ImageCaptureActivity extends Activity {
 
     private static final String DEBUG_TAG = "StillImageActivity";
-    final public static String STILL_IMAGE_FILE = "0.jpg";
     int i = 0;
-    Bitmap bitmap, oldbitmap;
+    Bitmap bitmap, oldbitmap, timeStampBitmap;
+    MotionDetection md;
+    FileOutputStream fos;
+
+
+    /**
+     * Start motion detection on a loop
+     *
+     * @param savedInstanceState
+     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.capture);
         final CameraSurfaceView cameraView = new CameraSurfaceView(getApplicationContext());
-        FrameLayout frame = (FrameLayout) findViewById(R.id.frame);
+        FrameLayout frame = findViewById(R.id.frame);
         frame.addView(cameraView);
-        final Button capture = (Button) findViewById(R.id.capture);
+        final Button capture = findViewById(R.id.capture);
         capture.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (capture.getText().equals("Start Camera")) {
                     capture.setText("Stop Camera");
-                    startCamera(cameraView);
+                    final Handler handler = new Handler();
+                    final int delay = 5000; //milliseconds
+                    handler.postDelayed(new Runnable() {
+                        public void run() {
+                            if (capture.getText().equals("Stop Camera")) {
+                                startCamera(cameraView);
+                                handler.postDelayed(this, delay);
+                            }
+                        }
+                    }, delay);
+
                 } else {
                     capture.setText("Start Camera");
                 }
             }
         });
-        //startCamera(cameraView);
+        md = new MotionDetection();
     }
 
 
     /**
-     * Start the camera in a loop and save a jpg if motion is detected.
+     * Save a jpg if motion is detected.
+     *
      * @param cameraView
      */
 
@@ -64,32 +84,28 @@ public class ImageCaptureActivity extends Activity {
 
             public void onPictureTaken(byte[] data, Camera camera) {
                 bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-                bitmap = timeStamp(bitmap);
                 if (detectMotion(bitmap, oldbitmap)) {
                     try {
-                        FileOutputStream fos;
+                        timeStampBitmap = timeStamp(bitmap);
                         fos = openFileOutput(Integer.toString(i) + ".jpg", MODE_PRIVATE);
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                        timeStampBitmap.compress(Bitmap.CompressFormat.JPEG, 50, fos);
                         fos.close();
                         i++;
-                        Toast.makeText(getApplicationContext(), "Motion. Picture saved. " + Integer.toString(i), Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getApplicationContext(), "Motion " + Integer.toString(i), Toast.LENGTH_SHORT).show();
                     } catch (Exception e) {
                         Log.e("Still", "Error writing file", e);
                     }
                 } else {
-                    Toast.makeText(getApplicationContext(), "No Motion. " + Integer.toString(i), Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getApplicationContext(), "No Motion. " + Integer.toString(i), Toast.LENGTH_SHORT).show();
                 }
                 oldbitmap = bitmap;
                 camera.startPreview();
-                Button capture = (Button) findViewById(R.id.capture);
-                if (capture.getText().equals("Stop Camera")) {
-                    startCamera(cameraView);
-                }
             }
         });
     }
 
     /**
+     * Call the function to detect motion
      *
      * @param bitmap
      * @param oldbitmap
@@ -98,14 +114,14 @@ public class ImageCaptureActivity extends Activity {
 
     public boolean detectMotion(Bitmap bitmap, Bitmap oldbitmap) {
         if (oldbitmap != null) {
-            MotionDetection md = new MotionDetection(this);
             return md.detectMotion(bitmap, oldbitmap);
         } else {
-            return false;
+            return true;
         }
     }
 
     /**
+     * Put a timestamp on the photo
      *
      * @param src
      * @return
@@ -129,7 +145,6 @@ public class ImageCaptureActivity extends Activity {
 
     /**
      * CameraSurfaceView class
-     *
      */
 
     private class CameraSurfaceView extends SurfaceView implements

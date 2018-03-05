@@ -5,10 +5,15 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -21,34 +26,28 @@ import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
-    private GoogleSignInClient mGoogleSignInClient;
-    private static final String TAG = "drive-quickstart";
+
+    private static final String TAG = "MainActivity";
     private static final int REQUEST_CODE_SIGN_IN = 0;
+    private gDrive myDrive;
+    private GIF myGif;
+    private GoogleSignInClient mGoogleSignInClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        myDrive = new gDrive(this);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+//        boolean initPref = sharedPref.getBoolean( "pref_init",false);
+//        int savePref = Integer.getInteger(sharedPref.getString("pref_save", "5"));
+//        Log.i("Main", Boolean.toString(initPref));
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.INTERNET}, 1);
         setEmailAlarm();
-        signInPlay();
-    }
-
-
-    public void signInPlay() {
-        Log.i(TAG, "Start sign in");
-        mGoogleSignInClient = buildGoogleSignInClient();
-        startActivityForResult(mGoogleSignInClient.getSignInIntent(), REQUEST_CODE_SIGN_IN);
-    }
-
-
-    private GoogleSignInClient buildGoogleSignInClient() {
-        GoogleSignInOptions signInOptions =
-                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                        .requestScopes(Drive.SCOPE_FILE, Drive.SCOPE_APPFOLDER)
-                        .build();
-        return GoogleSignIn.getClient(this, signInOptions);
+//        if (!initPref) {
+            mGoogleSignInClient = gDrive.signInPlay(this);
+            startActivityForResult(mGoogleSignInClient.getSignInIntent(), REQUEST_CODE_SIGN_IN);
+//        }
     }
 
 
@@ -61,8 +60,13 @@ public class MainActivity extends AppCompatActivity {
                 // Called after user is signed in.
                 if (resultCode == RESULT_OK) {
                     Log.i(TAG, "Signed in successfully.");
-                    gDrive myDrive = new gDrive(this);
-                    myDrive.saveToDrive();
+                    //myDrive.createFolder();
+                    myGif = new GIF(this);
+                    myGif.makeGif();
+                    myDrive.getFolder();
+                    //myDrive.saveToDrive();
+                    //myDrive.searchDestroy();
+
                 }
                 break;
 /*            case REQUEST_CODE_CAPTURE_IMAGE:
@@ -119,6 +123,37 @@ public class MainActivity extends AppCompatActivity {
     public void viewPhotos(View v) {
         startActivity(new Intent(getApplicationContext(), ImageDisplayActivity.class));
     }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.detect:
+                startActivity(new Intent(getApplicationContext(), ImageCaptureActivity.class));
+                return true;
+            case R.id.display:
+                startActivity(new Intent(getApplicationContext(), ImageDisplayActivity.class));
+                return true;
+            case R.id.settings:
+                startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+                return true;
+            case R.id.help:
+                startActivity(new Intent(getApplicationContext(), ImageDisplayActivity.class));
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+
 
 
 }

@@ -1,6 +1,7 @@
 package com.example.android.a3;
 
 import android.app.Activity;
+import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -28,6 +29,9 @@ import com.google.android.gms.drive.CreateFileActivityOptions;
 //import com.google.android.gms.drive.DriveResourceClient;
 import com.google.android.gms.drive.*;
 import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.drive.query.Filters;
+import com.google.android.gms.drive.query.Query;
+import com.google.android.gms.drive.query.SearchableField;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -42,13 +46,17 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
 /**
  * Created by Scott on 2/23/2018.
  */
 
 public class gDrive {
 
-    private static final String TAG = "drive-quickstart";
+    private static final String TAG = "Google drive";
     private static final int REQUEST_CODE_SIGN_IN = 0;
     private static final int REQUEST_CODE_CAPTURE_IMAGE = 1;
     private static final int REQUEST_CODE_CREATOR = 2;
@@ -57,36 +65,123 @@ public class gDrive {
     //private DriveClient mDriveClient;
     private DriveResourceClient mDriveResourceClient;
     private Context c;
+    private DriveFolder myDriveFolder;
+
+
 
     public gDrive(Context c) {
         this.c = c;
+        mDriveResourceClient = Drive.getDriveResourceClient(c, GoogleSignIn.getLastSignedInAccount(c));
+    }
+
+
+    public static GoogleSignInClient signInPlay(Context c) {
+        Log.i(TAG, "Start sign in");
+        GoogleSignInOptions signInOptions =
+                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestScopes(Drive.SCOPE_FILE, Drive.SCOPE_APPFOLDER)
+                        .build();
+        return GoogleSignIn.getClient(c, signInOptions);
+    }
+
+    public void getFolder(){
+
+        Log.i("Drive", "Getting folder");
+        Query query = new Query.Builder()
+                .addFilter(Filters.eq(SearchableField.TITLE, "Secure Cam"))
+                .build();
+        Task<MetadataBuffer> queryTask = mDriveResourceClient.query(query);
+        queryTask
+                .addOnSuccessListener(
+                        new OnSuccessListener<MetadataBuffer>() {
+                            @Override
+                            public void onSuccess(MetadataBuffer metadataBuffer) {
+                                Metadata myMetadata = metadataBuffer.get(0);
+                                Log.i("Search",  myMetadata.getCreatedDate().toString());
+                                DriveResource myDriveResource = myMetadata.getDriveId().asDriveResource();
+                                myDriveFolder = myMetadata.getDriveId().asDriveFolder();
+                                metadataBuffer.release();
+                                saveToDrive();
+                            }
+                        })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.i("Search",  "Folder not found");
+                    }
+                });
+    }
+
+
+
+    public void searchDestroy(){
+        Query query = new Query.Builder()
+                .addFilter(Filters.eq(SearchableField.TITLE, "SecureCam.gif"))
+                .build();
+        Task<MetadataBuffer> queryTask = mDriveResourceClient.query(query);
+        queryTask
+                .addOnSuccessListener(
+                        new OnSuccessListener<MetadataBuffer>() {
+                            @Override
+                            public void onSuccess(MetadataBuffer metadataBuffer) {
+                                Metadata myMetadata = metadataBuffer.get(0);
+                                Log.i("Search",  myMetadata.getCreatedDate().toString());
+                                DriveResource myDriveResource = myMetadata.getDriveId().asDriveResource();
+                                metadataBuffer.release();
+                                //DriveResource driveResource = metadata.getDriveId().asDriveResource();
+                                mDriveResourceClient.delete(myDriveResource)
+                                        .addOnSuccessListener(
+                                        new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                Log.i(TAG, "deleted file");
+                                            }
+                                        })
+                                        .addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                Log.e(TAG, "Unable to delete file", e);
+
+                                            }
+                                        });
+                            }
+                        })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Handle failure...
+                    }
+                });
+
+    }
+
+    private String getDate(){
+        Date c = Calendar.getInstance().getTime();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        return df.format(c);
     }
 
 
     public void saveToDrive() {
-        //mDriveClient = Drive.getDriveClient(c, GoogleSignIn.getLastSignedInAccount(c));
-        mDriveResourceClient = Drive.getDriveResourceClient(c, GoogleSignIn.getLastSignedInAccount(c));
-        createFileInAppFolder();
-    }
 
-
-    private void createFileInAppFolder() {
         final Task<DriveFolder> appFolderTask = mDriveResourceClient.getRootFolder(); //getAppFolder();
         final Task<DriveContents> createContentsTask = mDriveResourceClient.createContents();
         Tasks.whenAll(appFolderTask, createContentsTask)
                 .continueWithTask(new Continuation<Void, Task<DriveFile>>() {
                     @Override
                     public Task<DriveFile> then(@NonNull Task<Void> task) throws Exception {
+                        String title = getDate() + ".gif";
                         DriveFolder parent = appFolderTask.getResult();
                         DriveContents contents = createContentsTask.getResult();
                         OutputStream outputStream = contents.getOutputStream();
                         fileToBitstream(new File(c.getFilesDir().getAbsolutePath() + "/output.gif"), outputStream);
                         MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                                 .setMimeType("image/gif")
-                                .setTitle("SecureCam.gif")
+                                .setTitle(title)
                                 .setStarred(true)
                                 .build();
-                        return mDriveResourceClient.createFile(parent, changeSet, contents);
+
+                        return mDriveResourceClient.createFile(myDriveFolder, changeSet, contents);
                     }
 //                })
 /*                .addOnSuccessListener(this,
@@ -131,6 +226,44 @@ public class gDrive {
         } catch (IOException e1) {
             Log.w(TAG, "Unable to write file contents." + e1.getMessage());
         }
+    }
+
+
+    public void createFolder() {
+        mDriveResourceClient
+                .getRootFolder()
+                .continueWithTask(new Continuation<DriveFolder, Task<DriveFolder>>() {
+                    @Override
+                    public Task<DriveFolder> then(@NonNull Task<DriveFolder> task)
+                            throws Exception {
+                        DriveFolder parentFolder = task.getResult();
+                        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                .setTitle("Secure Cam")
+                                .setMimeType(DriveFolder.MIME_TYPE)
+                                .setStarred(true)
+                                .build();
+                        return mDriveResourceClient.createFolder(parentFolder, changeSet);
+                    }
+                /*})
+
+                .addOnSuccessListener(c,
+                        new OnSuccessListener<DriveFolder>() {
+                            @Override
+                            public void onSuccess(DriveFolder driveFolder) {
+                  //              showMessage(getString(R.string.file_created,
+                  //                      driveFolder.getDriveId().encodeToString()));
+                  //              finish();
+                            }
+                        })
+                .addOnFailureListener(c, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Unable to create file", e);
+                //        showMessage(getString(R.string.file_create_error));
+                //        finish();
+                    }
+                  */
+                });
     }
 
 }

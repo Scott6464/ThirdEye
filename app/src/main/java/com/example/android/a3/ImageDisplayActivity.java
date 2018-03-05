@@ -31,7 +31,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
         }
     }
 
-    private void nextPhoto(View v){
+    public void nextPhoto(View v){
         File imgFile = new File(getFilesDir().getAbsolutePath() + "/" + photoIndex + ".jpg");
         if (imgFile.exists()) {
             Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());

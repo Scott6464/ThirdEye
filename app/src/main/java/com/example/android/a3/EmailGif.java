@@ -12,7 +12,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 
@@ -23,13 +26,23 @@ import java.util.List;
 public class EmailGif extends BroadcastReceiver {
 
     Context c;
+    String path;
+    File directory;
+    File [] files;
+    GIF myGif;
 
+    /**
+     * Make a gif of captured images from last day. Upload it to Drive and Email it to User.
+     * @param c
+     * @param i
+     */
     @Override
     public void onReceive(Context c, Intent i) {
-        this.c = c;
-        Log.i("Alarm", "ring");
+        Log.i("Alarm", "Making, Uploading and Emailing Gif");
 
-        makeGif();
+        myGif = new GIF(c);
+
+        myGif.makeGif();
         new gDrive(c).saveToDrive();
         Thread t = new Thread() {
             @Override
@@ -54,56 +67,6 @@ public class EmailGif extends BroadcastReceiver {
         } catch (Exception e) {
             Log.e("SendMail", e.getMessage(), e);
         }
-    }
-
-
-    public void makeGif() {
-        String path = c.getFilesDir().getAbsolutePath();
-        AnimatedGIFWriter writer = new AnimatedGIFWriter(true);
-        try {
-            OutputStream os = new FileOutputStream(path + "/output.gif");
-            File directory = new File(path + "/");
-            File[] files = directory.listFiles();
-            List<Bitmap> bitmap = new ArrayList<>();
-            for (File file : files) {
-                String fileName = file.getName();
-                Log.i("filename1 ", fileName);
-                if (fileName.contains("jpg")) {
-                    bitmap.add(getResizedBitmap(rotateImage(BitmapFactory.decodeStream
-                            (new FileInputStream(path + "/" + fileName)), 90), 320));
-                }
-            }
-            Bitmap[] bitmapArray = bitmap.toArray(new Bitmap[bitmap.size()]);
-            int[] delayArray = new int[bitmapArray.length];
-            for (int i = 0; i < delayArray.length; i++) {
-                delayArray[i] = 1000;
-            }
-
-            writer.writeAnimatedGIF(bitmapArray, delayArray, os);
-            //Toast.makeText(getApplicationContext(), "Gif generated.", Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            Log.e(e.toString(), e.getMessage());
-        }
-    }
-
-    private static Bitmap rotateImage(Bitmap img, int degree) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(degree);
-        return Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
-    }
-
-    public Bitmap getResizedBitmap(Bitmap image, int maxSize) {
-        int width = image.getWidth();
-        int height = image.getHeight();
-        float bitmapRatio = (float) width / (float) height;
-        if (bitmapRatio > 1) {
-            width = maxSize;
-            height = (int) (width / bitmapRatio);
-        } else {
-            height = maxSize;
-            width = (int) (height * bitmapRatio);
-        }
-        return Bitmap.createScaledBitmap(image, width, height, true);
     }
 
 

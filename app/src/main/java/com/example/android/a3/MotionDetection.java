@@ -11,12 +11,8 @@ import android.util.Log;
 
 public class MotionDetection {
 
-    String path;
-    Bitmap[] bitmaps;
 
-    public MotionDetection(Context c) {
-
-    }
+    public MotionDetection() {}
 
 
     public boolean detectMotion(Bitmap b0, Bitmap b1) {
@@ -27,9 +23,9 @@ public class MotionDetection {
                 int pixel = b0.getPixel(x, y);
                 int pixel1 = b1.getPixel(x, y);
                 Log.i("pixels " + Integer.toString(Color.red(pixel)), Integer.toString(Color.red(pixel1)));
-                if (Math.abs(Color.red(pixel) - Color.red(pixel1)) > 10){return true;}
-                if (Math.abs(Color.blue(pixel) - Color.blue(pixel1)) > 10){return true;}
-                if (Math.abs(Color.green(pixel) - Color.green(pixel1)) > 10){return true;}
+                if (Math.abs(Color.red(pixel) - Color.red(pixel1)) > 32){return true;}
+                if (Math.abs(Color.blue(pixel) - Color.blue(pixel1)) > 32){return true;}
+                if (Math.abs(Color.green(pixel) - Color.green(pixel1)) > 32){return true;}
             }
         }
         return false;
