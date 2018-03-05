@@ -1,6 +1,5 @@
 package com.example.android.a3;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.Log;

@@ -1,10 +1,8 @@
 package com.example.android.a3;
 
 import android.app.Activity;
-import android.preference.PreferenceActivity;
-import android.preference.PreferenceFragment;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.preference.PreferenceFragment;
 
 public class SettingsActivity extends Activity {
 

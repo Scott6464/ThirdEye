@@ -1,33 +1,20 @@
 package com.example.android.a3;
 
-import android.app.Activity;
-import android.app.DownloadManager;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentSender;
-import android.graphics.Bitmap;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.drive.DriveClient;
-import com.google.android.gms.drive.DriveResourceClient;
-
-import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.auth.api.signin.GoogleSignInResult;
-import com.google.android.gms.drive.CreateFileActivityOptions;
-//import com.google.android.gms.drive.Drive;
-//import com.google.android.gms.drive.DriveClient;
-//import com.google.android.gms.drive.DriveContents;
-//import com.google.android.gms.drive.DriveFile;
-//import com.google.android.gms.drive.DriveFolder;
-//import com.google.android.gms.drive.DriveResourceClient;
-import com.google.android.gms.drive.*;
+import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveContents;
+import com.google.android.gms.drive.DriveFile;
+import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.DriveResource;
+import com.google.android.gms.drive.DriveResourceClient;
+import com.google.android.gms.drive.Metadata;
+import com.google.android.gms.drive.MetadataBuffer;
 import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
@@ -44,11 +31,16 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+
+//import com.google.android.gms.drive.Drive;
+//import com.google.android.gms.drive.DriveClient;
+//import com.google.android.gms.drive.DriveContents;
+//import com.google.android.gms.drive.DriveFile;
+//import com.google.android.gms.drive.DriveFolder;
+//import com.google.android.gms.drive.DriveResourceClient;
 
 /**
  * Created by Scott on 2/23/2018.

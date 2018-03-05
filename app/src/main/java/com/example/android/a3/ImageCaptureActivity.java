@@ -18,7 +18,6 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.Toast;
 
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;

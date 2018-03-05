@@ -7,8 +7,12 @@ package com.example.android.a3;
 
 import android.util.Log;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.Security;
+import java.util.Properties;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -24,22 +28,16 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
-import java.io.ByteArrayInputStream;
-
-import java.io.InputStream;
-import java.security.Security;
-import java.util.Properties;
-
 public class GMailSender extends javax.mail.Authenticator {
+    static {
+        Security.addProvider(new JSSEProvider());
+    }
+
     private String mailhost = "smtp.gmail.com";
     private String user;
     private String password;
     private Session session;
     private Multipart _multipart;
-
-    static {
-        Security.addProvider(new JSSEProvider());
-    }
 
     public GMailSender(String user, String password) {
         this.user = user;

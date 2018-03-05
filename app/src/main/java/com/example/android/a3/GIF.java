@@ -10,10 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -35,6 +32,11 @@ public class GIF {
         files = directory.listFiles();
     }
 
+    private static Bitmap rotateImage(Bitmap img, int degree) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(degree);
+        return Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
+    }
 
     private void deletejpgs(){
         Log.i("GIF", "Deleting jpgs");
@@ -45,7 +47,6 @@ public class GIF {
             }
         }
     }
-
 
     public void makeGif() {
 
@@ -73,12 +74,6 @@ public class GIF {
         } catch (Exception e) {
             Log.e(e.toString(), e.getMessage());
         }
-    }
-
-    private static Bitmap rotateImage(Bitmap img, int degree) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(degree);
-        return Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
     }
 
     public Bitmap getResizedBitmap(Bitmap image, int maxSize) {

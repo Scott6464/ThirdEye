@@ -16,6 +16,14 @@ public class ImageDisplayActivity extends AppCompatActivity {
 
     int photoIndex = 0;
 
+    private static Bitmap rotateImage(Bitmap img, int degree) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(degree);
+        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
+        img.recycle();
+        return rotatedImg;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,7 +32,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
         if (imgFile.exists()) {
             Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
             myBitmap = rotateImage(myBitmap, 90);
-            ImageView myImage = (ImageView) findViewById(R.id.photo);
+            ImageView myImage = findViewById(R.id.photo);
             myImage.setImageBitmap(myBitmap);
         } else {
             Toast.makeText(this, "Couldn't find photo.", Toast.LENGTH_LONG).show();
@@ -36,21 +44,13 @@ public class ImageDisplayActivity extends AppCompatActivity {
         if (imgFile.exists()) {
             Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
             myBitmap = rotateImage(myBitmap, 90);
-            ImageView myImage = (ImageView) findViewById(R.id.photo);
+            ImageView myImage = findViewById(R.id.photo);
             myImage.setImageBitmap(myBitmap);
         photoIndex++;
         }
         else {
             photoIndex=0;
         }
-    }
-
-    private static Bitmap rotateImage(Bitmap img, int degree) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(degree);
-        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
-        img.recycle();
-        return rotatedImg;
     }
 
 }
