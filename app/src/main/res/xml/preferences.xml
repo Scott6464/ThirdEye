@@ -2,16 +2,37 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <CheckBoxPreference
-        android:key="pref_init"
-        android:title="Initialized"
-        android:summary="App has been initialized on first run"
-        android:defaultValue="true"/>
+        android:defaultValue="true"
+        android:key="pref_email"
+        android:summary="Email a daily gif with motion detection photos."
+        android:title="Email daily summary" />
     <EditTextPreference
-        android:key="pref_save"
-        android:title="Keep how many days"
-        android:summary="Keep how many days on Google Drive 0-30"
+        android:defaultValue="sengle64@gmail.com"
+        android:inputType="textEmailAddress"
+        android:key="pref_address"
+        android:summary="Email address to send daily gif to"
+        android:title="Email Address" />
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="pref_alert"
+        android:summary="Send email when motion is detected."
+        android:title="Motion alert" />
+
+    <EditTextPreference
         android:defaultValue="7"
         android:inputType="number"
+        android:key="pref_save"
+        android:maxLength="2"
+        android:summary="Keep how many days on Google Drive 0-30"
+        android:title="Keep how many days" />
+    <EditTextPreference
+        android:defaultValue="10"
+        android:inputType="number"
+        android:key="pref_length"
+        android:maxLength="2"
+        android:summary="How many seconds of video to record"
+        android:title="Video Length"
         />
+
 
 </PreferenceScreen>

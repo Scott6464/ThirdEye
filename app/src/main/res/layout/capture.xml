@@ -8,7 +8,7 @@
         android:id="@+id/capture"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Start Camera" />
+        android:text="Stop Camera" />
 
     <FrameLayout
         android:id="@+id/frame"
