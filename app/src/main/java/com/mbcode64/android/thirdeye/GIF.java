@@ -40,7 +40,7 @@ public class GIF {
     }
 
     private void deletejpgs(){
-        Log.i("GIF", "Deleting jpgs");
+        Log.i("GIF", "Deleting local jpgs");
         for (File file : files) {
             String fileName = file.getName();
             if (fileName.contains("jpg")) {
@@ -49,20 +49,22 @@ public class GIF {
         }
     }
 
-    public void makeGif() {
-
+    public int makeGif() {
+        int numEvents = 0;
+        Log.i("Gif", "Making gif");
         AnimatedGIFWriter writer = new AnimatedGIFWriter(true);
         try {
             OutputStream os = new FileOutputStream(path + "/output.gif");
             List<Bitmap> bitmap = new ArrayList();
             Bitmap title = BitmapFactory.decodeResource(c.getResources(), R.drawable.eye3);
-            bitmap.add(title);
+            bitmap.add(getResizedBitmap(title, 320));
             for (File file : files) {
                 String fileName = file.getName();
                 Log.i("filename1 ", fileName);
                 if (fileName.contains("jpg")) {
-                    bitmap.add(getResizedBitmap(rotateImage(BitmapFactory.decodeStream
-                            (new FileInputStream(path + "/" + fileName)), 90), 320));
+                    numEvents++;
+                    bitmap.add(getResizedBitmap(BitmapFactory.decodeStream
+                            (new FileInputStream(path + "/" + fileName)), 320));
                 }
             }
             Bitmap[] bitmapArray = bitmap.toArray(new Bitmap[bitmap.size()]);
@@ -77,6 +79,7 @@ public class GIF {
         } catch (Exception e) {
             Log.e(e.toString(), e.getMessage());
         }
+        return numEvents;
     }
 
     public Bitmap getResizedBitmap(Bitmap image, int maxSize) {

@@ -65,6 +65,9 @@ public class GMailSender extends javax.mail.Authenticator {
     public synchronized void sendMail(String subject, String body, String sender, String recipients,String attachment) throws Exception {
         try {
             MimeMessage message = new MimeMessage(session);
+            MimeBodyPart htmlPart = new MimeBodyPart();
+            htmlPart.setContent(body, "text/html; charset=utf-8");
+            _multipart.addBodyPart(htmlPart);
             addAttachment(attachment);
             DataHandler handler = new DataHandler(new ByteArrayDataSource(body.getBytes(), "text/plain"));
 

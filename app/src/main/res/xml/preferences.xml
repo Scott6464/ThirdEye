@@ -12,12 +12,6 @@
         android:key="pref_address"
         android:summary="Email address to send daily gif to"
         android:title="Email Address" />
-    <CheckBoxPreference
-        android:defaultValue="false"
-        android:key="pref_alert"
-        android:summary="Send email when motion is detected."
-        android:title="Motion alert" />
-
     <EditTextPreference
         android:defaultValue="7"
         android:inputType="number"
@@ -26,12 +20,12 @@
         android:summary="Keep how many days on Google Drive 0-30"
         android:title="Keep how many days" />
     <EditTextPreference
-        android:defaultValue="10"
+        android:defaultValue="5"
         android:inputType="number"
-        android:key="pref_length"
+        android:key="pref_sensitivity"
         android:maxLength="2"
-        android:summary="How many seconds of video to record"
-        android:title="Video Length"
+        android:summary="How sensitive to motion events 1-10. 1 is least, 10 is most sensitive."
+        android:title="Motion Sensitivity"
         />
 
 

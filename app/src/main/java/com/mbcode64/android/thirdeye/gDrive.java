@@ -47,13 +47,14 @@ public class gDrive {
     private static final int REQUEST_CODE_SIGN_IN = 0;
     private static final int REQUEST_CODE_CAPTURE_IMAGE = 1;
     private static final int REQUEST_CODE_CREATOR = 2;
-
-
+    String webLink = "hi";
     //private DriveClient mDriveClient;
     private DriveResourceClient mDriveResourceClient;
     private Context c;
     private DriveFolder myDriveFolder;
     private int daysToSave;
+    private int jpgIndex;
+
 
     public gDrive(Context c) {
         this.c = c;
@@ -61,11 +62,11 @@ public class gDrive {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
         //boolean emailPref = sharedPref.getBoolean( "pref_email",true);
         String savePref = sharedPref.getString("pref_save", "7");
-        Log.i("Main Pref", savePref);
+        //Log.i("Main Pref", savePref);
         daysToSave = Integer.parseInt(savePref);
+        jpgIndex = 0;
 
     }
-
 
     public static GoogleSignInClient signInPlay(Context c) {
         Log.i(TAG, "Start sign in");
@@ -78,7 +79,6 @@ public class gDrive {
 
     /**
      * Check if folder exists.
-     * If exists. Save gif to folder
      * If not. Create folder.
      *
      * @param folderName
@@ -86,7 +86,7 @@ public class gDrive {
      */
 
 
-    public void getFolder(final String folderName) {
+    public void getAppFolder(final String folderName) {
 
         Log.i("Drive finding", folderName);
         Query query = new Query.Builder()
@@ -103,14 +103,11 @@ public class gDrive {
                                     Metadata myMetadata = metadataBuffer.get(0); //get the first item found
                                     Log.i("Search found", myMetadata.getCreatedDate().toString());
                                     myDriveFolder = myMetadata.getDriveId().asDriveFolder();
-                                    //saveToDrive();
                                 } else {
                                     Log.i("Search failed", folderName);
                                     createFolder(folderName);
                                 }
                                 metadataBuffer.release();
-                                searchDestroy();
-
                             }
                         })
                 .addOnFailureListener(new OnFailureListener() {
@@ -121,12 +118,11 @@ public class gDrive {
                 });
     }
 
-
     /**
      * Upload photo on Motion jpg to today's folder
      */
 
-    public void uploadEvent() {
+    public void uploadEvent(int jpgIndex) {
         final String folderName = getDate();
         Log.i("Drive finding", folderName);
         Query query = new Query.Builder()
@@ -162,6 +158,77 @@ public class gDrive {
                 });
     }
 
+    /**
+     * Check if folder exists. If not, then create it.
+     */
+
+    public void createFolder(final String folderName) {
+        Log.i("Drive Creating", folderName);
+        mDriveResourceClient
+                .getRootFolder()
+                .continueWithTask(new Continuation<DriveFolder, Task<DriveFolder>>() {
+                    @Override
+                    public Task<DriveFolder> then(@NonNull Task<DriveFolder> task)
+                            throws Exception {
+                        DriveFolder parentFolder = task.getResult();
+                        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                .setTitle(folderName)
+                                .setMimeType(DriveFolder.MIME_TYPE)
+                                .setStarred(true)
+                                .build();
+                        return mDriveResourceClient.createFolder(parentFolder, changeSet);
+                    }
+                /*})
+
+                .addOnSuccessListener(c,
+                        new OnSuccessListener<DriveFolder>() {
+                            @Override
+                            public void onSuccess(DriveFolder driveFolder) {
+                  //              showMessage(getString(R.string.file_created,
+                  //                      driveFolder.getDriveId().encodeToString()));
+                  //              finish();
+                            }
+                        })
+                .addOnFailureListener(c, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Unable to create file", e);
+                //        showMessage(getString(R.string.file_create_error));
+                //        finish();
+                    }
+                  */
+                });
+    }
+
+    public String getWebLink() {
+        final Context c1 = c;
+        Query query = new Query.Builder()
+                .addFilter(Filters.contains(SearchableField.TITLE, "2018"))
+                .build();
+        Task<MetadataBuffer> queryTask = mDriveResourceClient.query(query);
+        queryTask
+                .addOnSuccessListener(
+                        new OnSuccessListener<MetadataBuffer>() {
+                            @Override
+                            public void onSuccess(final MetadataBuffer metadataBuffer) {
+                                Metadata myMetadata = metadataBuffer.get(0);
+                                webLink = myMetadata.getEmbedLink();//Integer.toString(metadataBuffer.getCount());//getEmbedLink();
+                                Log.i("Drive link", webLink);
+                                metadataBuffer.release();
+
+                            }
+                        })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.i("Drive Search not found", "");
+                        // webLink = "failed";
+
+                    }
+                });
+        return webLink;
+    }
+
 
     /**
      * No more than 7 gifs allowed in the dir. Delete oldest.
@@ -169,7 +236,7 @@ public class gDrive {
 
     public void searchDestroy() {
         Query query = new Query.Builder()
-                .addFilter(Filters.contains(SearchableField.TITLE, "2018"))
+                .addFilter(Filters.contains(SearchableField.TITLE, "gif"))
                 .build();
         Task<MetadataBuffer> queryTask = mDriveResourceClient.query(query);
         queryTask
@@ -220,7 +287,7 @@ public class gDrive {
     }
 
 
-    public void saveToDrive() {
+    public void saveGifToDrive() {
 
         final Task<DriveFolder> appFolderTask = mDriveResourceClient.getRootFolder(); //getAppFolder();
         final Task<DriveContents> createContentsTask = mDriveResourceClient.createContents();
@@ -229,7 +296,8 @@ public class gDrive {
                     @Override
                     public Task<DriveFile> then(@NonNull Task<Void> task) throws Exception {
                         String title = getDate() + ".gif";
-                        DriveFolder parent = appFolderTask.getResult();
+                        Log.i("Drive upload ", title);
+                        //DriveFolder parent = appFolderTask.getResult();
                         DriveContents contents = createContentsTask.getResult();
                         OutputStream outputStream = contents.getOutputStream();
                         fileToBitstream(new File(c.getFilesDir().getAbsolutePath() + "/output.gif"), outputStream);
@@ -283,13 +351,14 @@ public class gDrive {
                         DriveFolder parent = appFolderTask.getResult();
                         DriveContents contents = createContentsTask.getResult();
                         OutputStream outputStream = contents.getOutputStream();
-                        fileToBitstream(new File(c.getFilesDir().getAbsolutePath() + "/0.jpg"), outputStream);
+                        fileToBitstream(new File(c.getFilesDir().getAbsolutePath()
+                                + "/" + Integer.toString(jpgIndex) + ".jpg"), outputStream);
                         MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                                 .setMimeType("image/jpg")
                                 .setTitle(title)
                                 .setStarred(true)
                                 .build();
-
+                        jpgIndex++;
                         return mDriveResourceClient.createFile(myDriveFolder, changeSet, contents);
                     }
 //                })
@@ -338,47 +407,5 @@ public class gDrive {
         }
     }
 
-
-    /**
-     * Check if folder exists. If not, then create it.
-     */
-
-    public void createFolder(final String folderName) {
-        Log.i("Drive Creating", folderName);
-        mDriveResourceClient
-                .getRootFolder()
-                .continueWithTask(new Continuation<DriveFolder, Task<DriveFolder>>() {
-                    @Override
-                    public Task<DriveFolder> then(@NonNull Task<DriveFolder> task)
-                            throws Exception {
-                        DriveFolder parentFolder = task.getResult();
-                        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                                .setTitle(folderName)
-                                .setMimeType(DriveFolder.MIME_TYPE)
-                                .setStarred(true)
-                                .build();
-                        return mDriveResourceClient.createFolder(parentFolder, changeSet);
-                    }
-                /*})
-
-                .addOnSuccessListener(c,
-                        new OnSuccessListener<DriveFolder>() {
-                            @Override
-                            public void onSuccess(DriveFolder driveFolder) {
-                  //              showMessage(getString(R.string.file_created,
-                  //                      driveFolder.getDriveId().encodeToString()));
-                  //              finish();
-                            }
-                        })
-                .addOnFailureListener(c, new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e(TAG, "Unable to create file", e);
-                //        showMessage(getString(R.string.file_create_error));
-                //        finish();
-                    }
-                  */
-                });
-    }
 
 }

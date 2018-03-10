@@ -28,11 +28,10 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.ListIterator;
 
-// todo upload photos immediately
+// todo video
 // todo encrypted email just for securecam
-// todo admob
-// todo eye graphic
-// todo email on motion
+// todo fix weblink hack
+// todo low light
 
 
 public class ImageCaptureActivity extends Activity {
@@ -130,7 +129,7 @@ public class ImageCaptureActivity extends Activity {
                                 Log.i("Image Capture", "Motion Detected");
                                 //Toast.makeText(getApplicationContext(), "Motion " + Integer.toString(i), Toast.LENGTH_SHORT).show();
                                 //dispatchTakeVideoIntent();
-                                myDrive.uploadEvent();
+                                myDrive.uploadEvent(i);
                             } catch (Exception e)
 
                             {

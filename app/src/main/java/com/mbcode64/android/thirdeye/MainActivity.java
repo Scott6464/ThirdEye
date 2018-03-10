@@ -17,10 +17,25 @@ import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.GoogleAuthProvider;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -28,8 +43,13 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private static final int REQUEST_CODE_SIGN_IN = 0;
+    private static final int RC_SIGN_IN = 1;
+    //admob id ca-app-pub-4239779371303218~2629368045
+    private FirebaseAuth mAuth;
+    private FirebaseAnalytics mFirebaseAnalytics;
     private gDrive myDrive;
     private GoogleSignInClient mGoogleSignInClient;
+    private AdView mAdView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,12 +59,62 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this, new String[]
                 {Manifest.permission.CAMERA, Manifest.permission.INTERNET,
                         Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-        setEmailAlarm();
+
 //        if (!initPref) {
+        mAuth = FirebaseAuth.getInstance();
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+
+        // Configure Google Sign In
+        String webclientid = "287235660811-dp5kmjlhm64t4mh1srp0q3t2cmqs0f4n.apps.googleusercontent.com";
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken((webclientid))
+                .requestEmail()
+                .build();
+//        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+//        startActivityForResult(signInIntent, RC_SIGN_IN);
+
         mGoogleSignInClient = gDrive.signInPlay(this);
-        startActivityForResult(mGoogleSignInClient.getSignInIntent(), REQUEST_CODE_SIGN_IN);
+        startActivityForResult(mGoogleSignInClient.getSignInIntent(), RC_SIGN_IN);
+        Bundle bundle = new Bundle();
+        bundle.putString(FirebaseAnalytics.Param.ITEM_ID, "id");
+        bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, "name");
+        bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "image");
+        mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
+        MobileAds.initialize(this, "ca-app-pub-4239779371303218~2629368045");
+        mAdView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
 //        }
     }
+
+
+    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+        Log.i(TAG, "firebaseAuthWithGoogle:" + acct.getId());
+
+        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+/*        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d(TAG, "signInWithCredential:success");
+                            FirebaseUser user = mAuth.getCurrentUser();
+     //                       updateUI(user);
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w(TAG, "signInWithCredential:failure", task.getException());
+     //                       Snackbar.make(findViewById(R.id.main_layout), "Authentication Failed.", Snackbar.LENGTH_SHORT).show();
+     //                       updateUI(null);
+                        }
+
+                        // ...
+                    }
+                });
+  */
+    }
+
+
 
 
     @Override
@@ -60,13 +130,39 @@ public class MainActivity extends AppCompatActivity {
                     //myDrive.createFolder(getString(R.string.app_name));
                     //myGif = new GIF(this);
                     //myGif.makeGif();
-                    //myDrive.getFolder(getString(R.string.app_name));
+                    myDrive.getAppFolder(getString(R.string.app_name));
+                    myDrive.getAppFolder(getDate());
                     //myDrive.saveToDrive();
                     //myDrive.searchDestroy();
+                    //myDrive.getWebLink();
 
 
                 }
                 break;
+            case RC_SIGN_IN:
+                Log.i(TAG, "Firebase Sign in request code " + Integer.toString(resultCode));
+                // Called after user is signed in.
+                if (resultCode == RESULT_OK) {
+                    Log.i(TAG, "Firebase Signed in successfully.");
+                    Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+                    try {
+                        // Google Sign In was successful, authenticate with Firebase
+                        GoogleSignInAccount account = task.getResult(ApiException.class);
+                        //firebaseAuthWithGoogle(account);
+                        myDrive = new gDrive(this);
+                        myDrive.getAppFolder(getString(R.string.app_name));
+                        myDrive.getAppFolder((getDate()));
+                        setEmailAlarm();
+
+
+                    } catch (ApiException e) {
+                        // Google Sign In failed, update UI appropriately
+                        Log.i(TAG, "Google sign in failed", e);
+                        Toast.makeText(this, "Sign in Failed. App will not work properly.", Toast.LENGTH_LONG).show();
+                        // ...
+                    }
+                    break;
+
 /*            case REQUEST_CODE_CAPTURE_IMAGE:
                 Log.i(TAG, "capture image request code");
                 // Called after a photo has been taken.
@@ -90,7 +186,15 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
 */
+                }
         }
+    }
+
+
+    private String getDate() {
+        Date c = Calendar.getInstance().getTime();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        return df.format(c);
     }
 
 
@@ -107,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
         calendar.setTimeInMillis(System.currentTimeMillis());
         calendar.set(Calendar.HOUR_OF_DAY, 4);
         calendar.set(Calendar.MINUTE, 58);
-        calendar.add(Calendar.DATE, 1);
+        //calendar.add(Calendar.DATE, 1);
 
         alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, alarmIntent);
