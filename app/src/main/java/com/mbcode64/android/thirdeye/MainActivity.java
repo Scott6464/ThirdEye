@@ -19,9 +19,7 @@ import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -80,10 +78,10 @@ public class MainActivity extends AppCompatActivity {
         bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, "name");
         bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "image");
         mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
-        MobileAds.initialize(this, "ca-app-pub-4239779371303218~2629368045");
-        mAdView = findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
+        //       MobileAds.initialize(this, "ca-app-pub-4239779371303218~2629368045");
+        //       mAdView = findViewById(R.id.adView);
+        //       AdRequest adRequest = new AdRequest.Builder().build();
+        //       mAdView.loadAd(adRequest);
 //        }
     }
 
@@ -203,14 +201,15 @@ public class MainActivity extends AppCompatActivity {
         PendingIntent alarmIntent;
 
         alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, EmailGif.class);
+        Intent intent = new Intent(this, Alarm.class);
         alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
 
+        Log.i(TAG, "Setting the alarm");
         // Set the alarm
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.HOUR_OF_DAY, 4);
-        calendar.set(Calendar.MINUTE, 58);
+        calendar.set(Calendar.HOUR_OF_DAY, 10);
+        calendar.set(Calendar.MINUTE, 20);
         //calendar.add(Calendar.DATE, 1);
 
         alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),

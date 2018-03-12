@@ -34,21 +34,26 @@ public class GMailSender extends javax.mail.Authenticator {
     }
 
     private String mailhost = "smtp.gmail.com";
+    //private  String mailhost = "192.16.8.1.144";
     private String user;
     private String password;
     private Session session;
     private Multipart _multipart;
 
     public GMailSender(String user, String password) {
-        this.user = user;
-        this.password = password;
+        this.user = user; //thirdeye
+        this.password = password; //64MBC0000
+        //this.user = "thirdeye";
+        //this.password = "64MBC0000";
 
         _multipart = new MimeMultipart();
         Properties props = new Properties();
-        props.setProperty("mail.transport.protocol", "smtp");
+        props.setProperty("mail.transport.protocol", "smtp"); // wifi ip 192.168.1.144 public 72.238.5.220
+        //props.setProperty("192.168.1.144", "smtp"); // wifi ip 192.168.1.144 public 72.238.5.220
         props.setProperty("mail.host", mailhost);
         props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.port", "465");
+        props.put("mail.smtp.port", "465"); //pop port 1101 smtp port 2525
+        //props.put("mail.smtp.port", "2525"); //pop port 1101 smtp port 2525
         props.put("mail.smtp.socketFactory.port", "465");
         props.put("mail.smtp.socketFactory.class",
                 "javax.net.ssl.SSLSocketFactory");
@@ -68,7 +73,7 @@ public class GMailSender extends javax.mail.Authenticator {
             MimeBodyPart htmlPart = new MimeBodyPart();
             htmlPart.setContent(body, "text/html; charset=utf-8");
             _multipart.addBodyPart(htmlPart);
-            addAttachment(attachment);
+            //addAttachment(attachment);
             DataHandler handler = new DataHandler(new ByteArrayDataSource(body.getBytes(), "text/plain"));
 
             message.setSender(new InternetAddress(sender));

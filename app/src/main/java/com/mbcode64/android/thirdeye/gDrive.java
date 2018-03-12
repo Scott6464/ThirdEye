@@ -55,7 +55,6 @@ public class gDrive {
     private int daysToSave;
     private int jpgIndex;
 
-
     public gDrive(Context c) {
         this.c = c;
         mDriveResourceClient = Drive.getDriveResourceClient(c, GoogleSignIn.getLastSignedInAccount(c));
@@ -65,7 +64,6 @@ public class gDrive {
         //Log.i("Main Pref", savePref);
         daysToSave = Integer.parseInt(savePref);
         jpgIndex = 0;
-
     }
 
     public static GoogleSignInClient signInPlay(Context c) {
@@ -200,34 +198,6 @@ public class gDrive {
                 });
     }
 
-    public String getWebLink() {
-        final Context c1 = c;
-        Query query = new Query.Builder()
-                .addFilter(Filters.contains(SearchableField.TITLE, "2018"))
-                .build();
-        Task<MetadataBuffer> queryTask = mDriveResourceClient.query(query);
-        queryTask
-                .addOnSuccessListener(
-                        new OnSuccessListener<MetadataBuffer>() {
-                            @Override
-                            public void onSuccess(final MetadataBuffer metadataBuffer) {
-                                Metadata myMetadata = metadataBuffer.get(0);
-                                webLink = myMetadata.getEmbedLink();//Integer.toString(metadataBuffer.getCount());//getEmbedLink();
-                                Log.i("Drive link", webLink);
-                                metadataBuffer.release();
-
-                            }
-                        })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.i("Drive Search not found", "");
-                        // webLink = "failed";
-
-                    }
-                });
-        return webLink;
-    }
 
 
     /**
@@ -246,7 +216,7 @@ public class gDrive {
                             public void onSuccess(final MetadataBuffer metadataBuffer) {
                                 Log.i("Drive destroy", Integer.toString(metadataBuffer.getCount()));
                                 if (metadataBuffer.getCount() > daysToSave) {
-                                    Metadata myMetadata = metadataBuffer.get(0);
+                                    Metadata myMetadata = metadataBuffer.get(metadataBuffer.getCount() - 1);
                                     Log.i("Search and destroy", myMetadata.getCreatedDate().toString());
                                     DriveResource myDriveResource = myMetadata.getDriveId().asDriveResource();
                                     mDriveResourceClient.delete(myDriveResource)
@@ -408,4 +378,61 @@ public class gDrive {
     }
 
 
+    public String getWebLink() {
+        String date = getDate() + ".gif";
+        Query query = new Query.Builder()
+                .addFilter(Filters.contains(SearchableField.TITLE, date))
+                .build();
+        Task<MetadataBuffer> queryTask = mDriveResourceClient.query(query);
+        queryTask
+                .addOnSuccessListener(
+                        new OnSuccessListener<MetadataBuffer>() {
+                            @Override
+                            public void onSuccess(final MetadataBuffer metadataBuffer) {
+                                Metadata myMetadata = metadataBuffer.get(0);
+                                webLink = myMetadata.getEmbedLink();//Integer.toString(metadataBuffer.getCount());//getEmbedLink();
+                                Log.i("Drive link", webLink);
+                                metadataBuffer.release();
+                                emailGif();
+                            }
+                        })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.i("Drive Search not found", "");
+                        // webLink = "failed";
+
+                    }
+                });
+        return webLink;
+    }
+
+    public void emailGif() {
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    String emailBody = " motion events: " + webLink;
+                    String pathForAppFiles = c.getFilesDir().getAbsolutePath() + "/output.gif"; //+ STILL_IMAGE_FILE;
+                    GMailSender sender = new GMailSender("ruddercontracting@gmail.com", "croutons");
+                    sender.sendMail("Third Eye Daily Digest",
+                            emailBody,
+                            "ruddercontracting@gmail.com",
+                            "sengle64@gmail.com",
+                            pathForAppFiles);
+                    Log.i("Email", "email sent");
+                } catch (
+                        Exception e)
+
+                {
+                    Log.e("SendMail", e.getMessage(), e);
+                }
+            }
+        };
+        t.start();
+
+        Client myClient = new Client("address", 50, "response");
+        myClient.execute();
+
+    }
 }

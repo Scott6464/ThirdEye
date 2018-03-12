@@ -14,7 +14,7 @@ import java.util.Date;
  * Created by Scott on 1/18/2018.
  */
 
-public class EmailGif extends BroadcastReceiver {
+public class Alarm extends BroadcastReceiver {
 
     Context c;
     GIF myGif;
@@ -42,30 +42,13 @@ public class EmailGif extends BroadcastReceiver {
                 myDrive.saveGifToDrive();
                 myDrive.searchDestroy();        // get rid of the week old gif
                 myDrive.getWebLink();           // get the link to the new gif
-
                 myDrive.getAppFolder(getDate()); //create the day's drive folder yyyy-mm-dd
-                //emailGif(myDrive.webLink);
             }
         };
         t.start();
 
     }
 
-    public void emailGif(String weblink) {
-        try {
-            String emailBody = Integer.toString(numEvents) + " motion events: " + weblink;
-            String pathForAppFiles = c.getFilesDir().getAbsolutePath() + "/output.gif"; //+ STILL_IMAGE_FILE;
-            GMailSender sender = new GMailSender("ruddercontracting@gmail.com", "croutons");
-            sender.sendMail("Third Eye Daily Digest",
-                    emailBody,
-                    "ruddercontracting@gmail.com",
-                    "sengle64@gmail.com",
-                    pathForAppFiles);
-            Log.i("Email", "email sent");
-        } catch (Exception e) {
-            Log.e("SendMail", e.getMessage(), e);
-        }
-    }
 
     private String getDate() {
         Date c = Calendar.getInstance().getTime();

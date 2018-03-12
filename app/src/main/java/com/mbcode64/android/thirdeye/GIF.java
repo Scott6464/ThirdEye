@@ -23,7 +23,7 @@ public class GIF {
     File directory;
     File [] files;
     Context c;
-
+    int numEvents;
 
     public GIF(Context c) {
         this.c = c;
@@ -50,7 +50,7 @@ public class GIF {
     }
 
     public int makeGif() {
-        int numEvents = 0;
+        numEvents = 0;
         Log.i("Gif", "Making gif");
         AnimatedGIFWriter writer = new AnimatedGIFWriter(true);
         try {
