@@ -150,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
                         myDrive = new gDrive(this);
                         myDrive.getAppFolder(getString(R.string.app_name));
                         myDrive.getAppFolder((getDate()));
+                        myDrive.emailGif();
                         setEmailAlarm();
 
 
@@ -208,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
         // Set the alarm
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.HOUR_OF_DAY, 10);
+        calendar.set(Calendar.HOUR_OF_DAY, 5);
         calendar.set(Calendar.MINUTE, 20);
         //calendar.add(Calendar.DATE, 1);
 

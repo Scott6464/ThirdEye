@@ -39,9 +39,10 @@ public class Alarm extends BroadcastReceiver {
 
                 myDrive.getAppFolder(c1.getString(R.string.app_name));
                 numEvents = myGif.makeGif();    // make the day's gif
-                myDrive.saveGifToDrive();
+                myDrive.saveGifToDrive();       // upload it to google drive
                 myDrive.searchDestroy();        // get rid of the week old gif
-                myDrive.getWebLink();           // get the link to the new gif
+                myDrive.getWebLink();           // get the drive link to the day's gif
+                // email is sent after link is found.
                 myDrive.getAppFolder(getDate()); //create the day's drive folder yyyy-mm-dd
             }
         };

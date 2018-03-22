@@ -47,7 +47,7 @@ public class gDrive {
     private static final int REQUEST_CODE_SIGN_IN = 0;
     private static final int REQUEST_CODE_CAPTURE_IMAGE = 1;
     private static final int REQUEST_CODE_CREATOR = 2;
-    String webLink = "hi";
+    String webLink = "insert drive link here";
     //private DriveClient mDriveClient;
     private DriveResourceClient mDriveResourceClient;
     private Context c;
@@ -299,6 +299,25 @@ public class gDrive {
                         finish();
                     }
  */
+                })
+
+                .addOnSuccessListener(
+                        new OnSuccessListener<DriveFile>() {
+                            @Override
+                            public void onSuccess(DriveFile driveFile) {
+                                //showMessage(getString(R.string.file_created,
+                                //        driveFile.getDriveId().encodeToString()));
+                                //finish();
+                                getWebLink();           // get the link to the new gif
+                            }
+                        })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Unable to create file", e);
+                        //showMessage(getString(R.string.file_create_error));
+                        //finish();
+                    }
                 });
     }
 
@@ -379,6 +398,7 @@ public class gDrive {
 
 
     public String getWebLink() {
+        Log.i("Drive", "getting weblink");
         String date = getDate() + ".gif";
         Query query = new Query.Builder()
                 .addFilter(Filters.contains(SearchableField.TITLE, date))
@@ -391,7 +411,7 @@ public class gDrive {
                             public void onSuccess(final MetadataBuffer metadataBuffer) {
                                 Metadata myMetadata = metadataBuffer.get(0);
                                 webLink = myMetadata.getEmbedLink();//Integer.toString(metadataBuffer.getCount());//getEmbedLink();
-                                Log.i("Drive link", webLink);
+                                Log.i("Drive link", Integer.toString(metadataBuffer.getCount())); //webLink);
                                 metadataBuffer.release();
                                 emailGif();
                             }
@@ -400,39 +420,33 @@ public class gDrive {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Log.i("Drive Search not found", "");
-                        // webLink = "failed";
+                        webLink = "getWebLink failed";
 
                     }
                 });
         return webLink;
     }
 
+
     public void emailGif() {
         Thread t = new Thread() {
             @Override
             public void run() {
                 try {
+                    String user = "thirdeye@mbcode.net";
+                    String password = "Crouton1!";
+                    String recipient = "sengle64@gmail.com";
                     String emailBody = " motion events: " + webLink;
                     String pathForAppFiles = c.getFilesDir().getAbsolutePath() + "/output.gif"; //+ STILL_IMAGE_FILE;
-                    GMailSender sender = new GMailSender("ruddercontracting@gmail.com", "croutons");
-                    sender.sendMail("Third Eye Daily Digest",
-                            emailBody,
-                            "ruddercontracting@gmail.com",
-                            "sengle64@gmail.com",
-                            pathForAppFiles);
+                    GMailSender sender = new GMailSender(user, password);
+                    sender.sendMail("Third Eye Daily Digest", emailBody, user, recipient, pathForAppFiles);
                     Log.i("Email", "email sent");
-                } catch (
-                        Exception e)
-
+                } catch (Exception e)
                 {
                     Log.e("SendMail", e.getMessage(), e);
                 }
             }
         };
         t.start();
-
-        Client myClient = new Client("address", 50, "response");
-        myClient.execute();
-
     }
 }

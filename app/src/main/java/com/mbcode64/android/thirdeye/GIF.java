@@ -75,7 +75,7 @@ public class GIF {
 
             writer.writeAnimatedGIF(bitmapArray, delayArray, os);
             //Toast.makeText(getApplicationContext(), "Gif generated.", Toast.LENGTH_LONG).show();
-            deletejpgs();
+            //deletejpgs();
         } catch (Exception e) {
             Log.e(e.toString(), e.getMessage());
         }
