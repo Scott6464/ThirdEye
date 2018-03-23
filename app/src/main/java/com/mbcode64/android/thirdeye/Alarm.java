@@ -19,7 +19,7 @@ public class Alarm extends BroadcastReceiver {
     Context c;
     GIF myGif;
     gDrive myDrive;
-    int numEvents;
+    int numEvents = 0;
 
     /**
      * Make a gif of captured images from last day. Upload it to Drive and Email it to User.
@@ -37,13 +37,13 @@ public class Alarm extends BroadcastReceiver {
                 myDrive = new gDrive(c1);
                 myGif = new GIF(c1);
 
-                myDrive.getAppFolder(c1.getString(R.string.app_name));
+                //myDrive.getAppFolder(c1.getString(R.string.app_name));
                 numEvents = myGif.makeGif();    // make the day's gif
-                myDrive.saveGifToDrive();       // upload it to google drive
-                myDrive.searchDestroy();        // get rid of the week old gif
-                myDrive.getWebLink();           // get the drive link to the day's gif
+                myDrive.saveGifToDrive(numEvents);         // upload it to google drive
+                // get the drive link to the day's gif
                 // email is sent after link is found.
-                myDrive.getAppFolder(getDate()); //create the day's drive folder yyyy-mm-dd
+                //myDrive.getAppFolder(getDate()); //create the day's drive folder yyyy-mm-dd
+                //myDrive.searchDestroy();        // get rid of the week old gif
             }
         };
         t.start();

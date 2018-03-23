@@ -148,9 +148,7 @@ public class MainActivity extends AppCompatActivity {
                         GoogleSignInAccount account = task.getResult(ApiException.class);
                         //firebaseAuthWithGoogle(account);
                         myDrive = new gDrive(this);
-                        myDrive.getAppFolder(getString(R.string.app_name));
-                        myDrive.getAppFolder((getDate()));
-                        myDrive.emailGif();
+                        //myDrive.emailGif();
                         setEmailAlarm();
 
 

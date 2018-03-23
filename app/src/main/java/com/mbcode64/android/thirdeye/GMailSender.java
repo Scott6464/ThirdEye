@@ -60,7 +60,7 @@ public class GMailSender extends javax.mail.Authenticator {
         props.put("mail.smtp.port", "587"); //TLS Port
         props.put("mail.smtp.auth", "true"); //enable authentication
         props.put("mail.smtp.starttls.enable", "true"); //enable STARTTLS
-        props.put("mail.debug", "true");
+//        props.put("mail.debug", "true");
         props.put("mail.smtp.ssl.enable", "true");
         props.put("mail.smtp.socketFactory.port", 587);
         props.put("mail.smtp.socketFactory.fallback", "false");
@@ -77,7 +77,6 @@ public class GMailSender extends javax.mail.Authenticator {
             dkimSigner.setZParam(true);
         } catch (Exception e) {
         }
-
         //create Authenticator object to pass in Session.getInstance argument
         Authenticator auth = new Authenticator() {
             //override the getPasswordAuthentication method
@@ -85,13 +84,14 @@ public class GMailSender extends javax.mail.Authenticator {
                 return new PasswordAuthentication(fromEmail, fromPassword);
             }
         };
-
         session = Session.getDefaultInstance(props, auth);
     }
+
 
     protected PasswordAuthentication getPasswordAuthentication() {
         return new PasswordAuthentication(user, password);
     }
+
 
     public synchronized void sendMail(String subject, String body, String sender, String recipients, String attachment) throws Exception {
         try {
@@ -101,19 +101,11 @@ public class GMailSender extends javax.mail.Authenticator {
             _multipart.addBodyPart(htmlPart);
             //addAttachment(attachment);
             DataHandler handler = new DataHandler(new ByteArrayDataSource(body.getBytes(), "text/plain"));
-
-            //MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress("thirdeye@mbcode.net"));
-            //message.addRecipient(Message.RecipientType.TO, new InternetAddress("mail2@mail.es"));
-            //message.setSubject("Subject");
-            //message.setText("Text");
-
-
             message.setSender(new InternetAddress(sender));
             message.setSubject(subject);
             message.setDataHandler(handler);
             message.setContent(_multipart);
-
 
             if (recipients.indexOf(',') > 0)
                 message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipients));

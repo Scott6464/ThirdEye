@@ -50,11 +50,10 @@ public class Client extends AsyncTask<Void, Void, Void> {
             }
 
         } catch (UnknownHostException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             response = "UnknownHostException: " + e.toString();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
+
             e.printStackTrace();
             response = "IOException: " + e.toString();
         } finally {
@@ -62,7 +61,7 @@ public class Client extends AsyncTask<Void, Void, Void> {
                 try {
                     socket.close();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
+
                     e.printStackTrace();
                 }
             }

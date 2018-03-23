@@ -39,10 +39,13 @@ public class ImageCaptureActivity extends Activity {
     private static final String TAG = "StillImageActivity";
     final Handler handler = new Handler();
     int i = 0;
-    Bitmap bitmap, oldbitmap, timeStampBitmap;
+    Bitmap bitmap, oldbitmap, originalBitmap, timeStampBitmap;
     MotionDetection md;
     FileOutputStream fos;
     gDrive myDrive;
+
+
+    //todo photo frequency and fast photos when motion detected.
 
     private static Bitmap rotateImage(Bitmap img, int degree) {
         Matrix matrix = new Matrix();
@@ -62,6 +65,8 @@ public class ImageCaptureActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         myDrive = new gDrive(this);
+        GIF myGif = new GIF(this);
+        myGif.deletejpgs();
         setContentView(R.layout.capture);
         final CameraSurfaceView cameraView = new CameraSurfaceView(getApplicationContext());
         FrameLayout frame = findViewById(R.id.frame);
@@ -85,7 +90,7 @@ public class ImageCaptureActivity extends Activity {
 
     private void startCameraThread(final CameraSurfaceView cameraView) {
 
-        final int delay = 2000; //milliseconds
+        final int delay = 1000; //milliseconds
         handler.postDelayed(new Runnable() {
             public void run() {
                 startCamera(cameraView);
@@ -158,10 +163,19 @@ public class ImageCaptureActivity extends Activity {
 
     public boolean detectMotion(Bitmap bitmap, Bitmap oldbitmap) {
         if (oldbitmap != null) {
-            return md.detectMotion(bitmap, oldbitmap);
+            //if (md.detectMotion(oldbitmap, originalBitmap) && md.detectMotion(bitmap, oldbitmap) && md.detectMotion(bitmap, originalBitmap)) {return true;}
+            //if (!md.detectMotion(oldbitmap, originalBitmap) && md.detectMotion(bitmap, oldbitmap) && md.detectMotion(bitmap, originalBitmap)) {originalBitmap = oldbitmap; return true;}
+            if (md.detectMotion(oldbitmap, originalBitmap)) {
+                originalBitmap = oldbitmap;
+                return false;
+            }
+            return md.detectMotion(oldbitmap, bitmap);
         } else {
+            // first
+            originalBitmap = bitmap;
             return true;
         }
+
     }
 
     /**

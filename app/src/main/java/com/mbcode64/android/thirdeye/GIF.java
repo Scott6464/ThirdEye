@@ -39,7 +39,7 @@ public class GIF {
         return Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
     }
 
-    private void deletejpgs(){
+    public void deletejpgs() {
         Log.i("GIF", "Deleting local jpgs");
         for (File file : files) {
             String fileName = file.getName();
