@@ -19,6 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <receiver android:name="com.mbcode64.android.thirdeye.Alarm" />
+        <receiver android:name="com.mbcode64.android.thirdeye.EmailAlarm" />
 
         <activity android:name="com.mbcode64.android.thirdeye.MainActivity">
             <intent-filter>

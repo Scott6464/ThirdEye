@@ -306,7 +306,8 @@ public class gDrive {
 
     public void searchDestroy() {
         Query query = new Query.Builder()
-                .addFilter(Filters.contains(SearchableField.TITLE, "gif"))
+                .addFilter(Filters.contains(SearchableField.TITLE, "20"))
+                //.addFilter(Filters.eq(SearchableField.MIME_TYPE, "application/vnd.google-apps.folder"))
                 .build();
         Task<MetadataBuffer> queryTask = mDriveResourceClient.query(query);
         queryTask
@@ -375,36 +376,16 @@ public class gDrive {
                                 .setTitle(title)
                                 .setStarred(true)
                                 .build();
-
-                        return mDriveResourceClient.createFile(myDateFolder, changeSet, contents);
+// todo problem is here
+                        return mDriveResourceClient.createFile(myDriveFolder, changeSet, contents);
                     }
-//                })
-/*                .addOnSuccessListener(this,
-                        new OnSuccessListener<DriveFile>() {
-                            @Override
-                            public void onSuccess(DriveFile driveFile) {
-                                Log.i(TAG, "File Created");
-                                Toast.makeText(this, "file created " + driveFile.getDriveId().encodeToString(), Toast.LENGTH_LONG).show();
-                                // showMessage(getString(R.string.file_created,
-                                //        driveFile.getDriveId().encodeToString()));
-                                //finish();
-                            }
-                        })
-                .addOnFailureListener(this, new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e(TAG, "Unable to create file", e);
-                        //showMessage(getString(R.string.file_create_error));
-                        finish();
-                    }
- */
                 })
 
                 .addOnSuccessListener(
                         new OnSuccessListener<DriveFile>() {
                             @Override
                             public void onSuccess(DriveFile driveFile) {
-                                getWebLink(numEvents);           // get the link to the new gif
+                                searchDestroy();
                             }
                         })
                 .addOnFailureListener(new OnFailureListener() {
@@ -493,7 +474,7 @@ public class gDrive {
     }
 
 
-    //todo fix it so that we can get weblink to just uploaded file
+
 
     public String getWebLink(final int numEvents) {
         Log.i("Drive", "getting weblink");
@@ -511,7 +492,11 @@ public class gDrive {
                                 webLink = myMetadata.getEmbedLink();//Integer.toString(metadataBuffer.getCount());//getEmbedLink();
                                 Log.i("Drive link", Integer.toString(metadataBuffer.getCount()) + webLink);
                                 metadataBuffer.release();
-                                //emailGif(numEvents);
+                                if (webLink != null) {
+                                    emailGif(numEvents);
+                                } else {
+                                    getWebLink(numEvents);
+                                }
                                 //searchDestroy();
                             }
                         })

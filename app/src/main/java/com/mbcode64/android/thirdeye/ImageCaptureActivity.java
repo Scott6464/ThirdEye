@@ -30,7 +30,6 @@ import java.util.ListIterator;
 
 // todo video
 // todo encrypted email just for securecam
-// todo fix weblink hack
 // todo low light
 
 
@@ -90,7 +89,7 @@ public class ImageCaptureActivity extends Activity {
 
     private void startCameraThread(final CameraSurfaceView cameraView) {
 
-        final int delay = 1000; //milliseconds
+        final int delay = 2000; //milliseconds
         handler.postDelayed(new Runnable() {
             public void run() {
                 startCamera(cameraView);

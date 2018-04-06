@@ -195,24 +195,35 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    // todo support multiple cameras
     public void setEmailAlarm() {
-        AlarmManager alarmMgr;
-        PendingIntent alarmIntent;
 
-        alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        AlarmManager alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
         Intent intent = new Intent(this, Alarm.class);
-        alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
-
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
         Log.i(TAG, "Setting the alarm");
-        // Set the alarm
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.HOUR_OF_DAY, 5);
-        calendar.set(Calendar.MINUTE, 20);
+        calendar.set(Calendar.HOUR_OF_DAY, 8);
+        calendar.set(Calendar.MINUTE, 40);
         //calendar.add(Calendar.DATE, 1);
-
         alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, alarmIntent);
+
+
+        Intent emailIntent = new Intent(this, EmailAlarm.class);
+        PendingIntent emailAlarmIntent = PendingIntent.getBroadcast(this, 1, emailIntent, 0);
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.setTimeInMillis(System.currentTimeMillis());
+        calendar1.set(Calendar.HOUR_OF_DAY, 8);
+        calendar1.set(Calendar.MINUTE, 45);
+        //calendar1.add(Calendar.DATE, 1);
+
+        alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar1.getTimeInMillis(),
+                AlarmManager.INTERVAL_DAY, emailAlarmIntent);
+
+
     }
 
 
