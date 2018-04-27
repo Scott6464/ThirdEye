@@ -140,8 +140,7 @@ public class gDrive {
                 .getRootFolder()
                 .continueWithTask(new Continuation<DriveFolder, Task<DriveFolder>>() {
                     @Override
-                    public Task<DriveFolder> then(@NonNull Task<DriveFolder> task)
-                            throws Exception {
+                    public Task<DriveFolder> then(@NonNull Task<DriveFolder> task) {
                         DriveFolder parentFolder = task.getResult();
                         MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                                 .setTitle(folderName)
@@ -266,8 +265,7 @@ public class gDrive {
                 .getRootFolder()
                 .continueWithTask(new Continuation<DriveFolder, Task<DriveFolder>>() {
                     @Override
-                    public Task<DriveFolder> then(@NonNull Task<DriveFolder> task)
-                            throws Exception {
+                    public Task<DriveFolder> then(@NonNull Task<DriveFolder> task) {
                         DriveFolder parentFolder = task.getResult();
                         MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                                 .setTitle(folderName)
@@ -307,7 +305,7 @@ public class gDrive {
     public void searchDestroy() {
         Query query = new Query.Builder()
                 .addFilter(Filters.contains(SearchableField.TITLE, "20"))
-                //.addFilter(Filters.eq(SearchableField.MIME_TYPE, "application/vnd.google-apps.folder"))
+                .addFilter(Filters.eq(SearchableField.MIME_TYPE, "application/vnd.google-apps.folder"))
                 .build();
         Task<MetadataBuffer> queryTask = mDriveResourceClient.query(query);
         queryTask
@@ -359,13 +357,13 @@ public class gDrive {
 
 
     public void saveGifToDrive(final int numEvents) {
-
+        getDateFolder();
         final Task<DriveFolder> appFolderTask = mDriveResourceClient.getRootFolder();
         final Task<DriveContents> createContentsTask = mDriveResourceClient.createContents();
         Tasks.whenAll(appFolderTask, createContentsTask)
                 .continueWithTask(new Continuation<Void, Task<DriveFile>>() {
                     @Override
-                    public Task<DriveFile> then(@NonNull Task<Void> task) throws Exception {
+                    public Task<DriveFile> then(@NonNull Task<Void> task) {
                         String title = "MotionEvents.gif";
                         Log.i("Drive upload ", title);
                         DriveContents contents = createContentsTask.getResult();
@@ -376,8 +374,7 @@ public class gDrive {
                                 .setTitle(title)
                                 .setStarred(true)
                                 .build();
-// todo problem is here
-                        return mDriveResourceClient.createFile(myDriveFolder, changeSet, contents);
+                        return mDriveResourceClient.createFile(myDateFolder, changeSet, contents);
                     }
                 })
 
@@ -412,7 +409,7 @@ public class gDrive {
         Tasks.whenAll(appFolderTask, createContentsTask)
                 .continueWithTask(new Continuation<Void, Task<DriveFile>>() {
                     @Override
-                    public Task<DriveFile> then(@NonNull Task<Void> task) throws Exception {
+                    public Task<DriveFile> then(@NonNull Task<Void> task) {
                         String title = getTime() + ".jpg";
                         DriveFolder parent = appFolderTask.getResult();
                         DriveContents contents = createContentsTask.getResult();

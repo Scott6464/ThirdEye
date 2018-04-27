@@ -5,6 +5,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -205,8 +206,8 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "Setting the alarm");
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.HOUR_OF_DAY, 8);
-        calendar.set(Calendar.MINUTE, 40);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 42);
         //calendar.add(Calendar.DATE, 1);
         alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, alarmIntent);
@@ -216,15 +217,26 @@ public class MainActivity extends AppCompatActivity {
         PendingIntent emailAlarmIntent = PendingIntent.getBroadcast(this, 1, emailIntent, 0);
         Calendar calendar1 = Calendar.getInstance();
         calendar1.setTimeInMillis(System.currentTimeMillis());
-        calendar1.set(Calendar.HOUR_OF_DAY, 8);
-        calendar1.set(Calendar.MINUTE, 45);
-        //calendar1.add(Calendar.DATE, 1);
+        calendar1.set(Calendar.HOUR_OF_DAY, 1);
+        calendar1.set(Calendar.MINUTE, 40);
+        calendar1.add(Calendar.DATE, 1);
 
         alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar1.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, emailAlarmIntent);
 
 
     }
+
+    public String getDeviceName() {
+        String manufacturer = Build.MANUFACTURER;
+        String model = Build.MODEL;
+        if (model.toLowerCase().startsWith(manufacturer.toLowerCase())) {
+            return (model);
+        } else {
+            return (manufacturer) + " " + model;
+        }
+    }
+
 
 
     private void startAnimation() {
@@ -245,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void viewPhotos(View v) {
-        startActivity(new Intent(getApplicationContext(), VideoActivity.class));
+        startActivity(new Intent(getApplicationContext(), ImageDisplayActivity.class));
     }
 
 

@@ -14,6 +14,7 @@ import android.hardware.Camera.Size;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -42,7 +43,7 @@ public class ImageCaptureActivity extends Activity {
     MotionDetection md;
     FileOutputStream fos;
     gDrive myDrive;
-
+    PowerManager.WakeLock wl;
 
     //todo photo frequency and fast photos when motion detected.
 
@@ -70,21 +71,35 @@ public class ImageCaptureActivity extends Activity {
         final CameraSurfaceView cameraView = new CameraSurfaceView(getApplicationContext());
         FrameLayout frame = findViewById(R.id.frame);
         frame.addView(cameraView);
-        startCameraThread(cameraView);
+
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "My Tag");
         final Button captureButton = findViewById(R.id.capture);
+        wl.acquire();
+        startCameraThread(cameraView);
         captureButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (captureButton.getText().equals("Start Camera")) {
                     captureButton.setText("Stop Camera");
+                    //wl.acquire();
                     startCameraThread(cameraView);
                 } else {
                     captureButton.setText("Start Camera");
                     handler.removeCallbacksAndMessages(null);
+                    //wl.release();
 
                 }
             }
         });
         md = new MotionDetection();
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        wl.release();
+        super.onDestroy();
+
     }
 
     private void startCameraThread(final CameraSurfaceView cameraView) {
@@ -273,17 +288,21 @@ public class ImageCaptureActivity extends Activity {
         }
 
         public void surfaceCreated(SurfaceHolder holder) {
-            camera = Camera.open();
             try {
+                camera = Camera.open();
                 camera.setPreviewDisplay(mHolder);
+                camera.cancelAutoFocus();
             } catch (Exception e) {
                 Log.e(TAG, "Failed to set camera preview display", e);
             }
         }
 
         public void surfaceDestroyed(SurfaceHolder holder) {
-            camera.stopPreview();
-            camera.release();
+            try {
+                camera.stopPreview();
+                camera.release();
+            } catch (Exception e) {
+            }
             camera = null;
         }
 

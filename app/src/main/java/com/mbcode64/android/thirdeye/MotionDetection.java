@@ -2,7 +2,6 @@ package com.mbcode64.android.thirdeye;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.util.Log;
 
 /**
  * Created by Scott on 1/14/2018.
@@ -19,7 +18,7 @@ public class MotionDetection {
     public boolean detectMotion(Bitmap b0, Bitmap b1) {
         b0 = resizeImage(b0,9);
         b1 = resizeImage(b1,9);
-        Log.i(TAG, "Detecting");
+//        Log.i(TAG, "Detecting");
         for (int x=0; x<3; x++) {
             for(int y=0; y<3; y++) {
                 int pixel = b0.getPixel(x, y);

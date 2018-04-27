@@ -30,7 +30,6 @@ public class GIF {
         path = c.getFilesDir().getAbsolutePath();
         directory = new File(path + "/");
         files = directory.listFiles();
-
     }
 
     private static Bitmap rotateImage(Bitmap img, int degree) {
@@ -39,14 +38,17 @@ public class GIF {
         return Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
     }
 
-    public void deletejpgs() {
+    public int deletejpgs() {
+        numEvents = 0;
         Log.i("GIF", "Deleting local jpgs");
         for (File file : files) {
             String fileName = file.getName();
             if (fileName.contains("jpg")) {
+                numEvents++;
                 file.delete();
             }
         }
+        return numEvents;
     }
 
     public int makeGif() {
@@ -75,7 +77,7 @@ public class GIF {
 
             writer.writeAnimatedGIF(bitmapArray, delayArray, os);
             //Toast.makeText(getApplicationContext(), "Gif generated.", Toast.LENGTH_LONG).show();
-            //deletejpgs();
+
         } catch (Exception e) {
             Log.e(e.toString(), e.getMessage());
         }

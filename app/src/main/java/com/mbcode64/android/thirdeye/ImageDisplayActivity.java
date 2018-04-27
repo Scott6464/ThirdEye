@@ -14,7 +14,7 @@ import java.io.File;
 
 public class ImageDisplayActivity extends AppCompatActivity {
 
-    int photoIndex = 0;
+    int photoIndex = 1;
 
     private static Bitmap rotateImage(Bitmap img, int degree) {
         Matrix matrix = new Matrix();
@@ -31,7 +31,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
         File imgFile = new File(getFilesDir().getAbsolutePath() + "/0.jpg");
         if (imgFile.exists()) {
             Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-            myBitmap = rotateImage(myBitmap, 90);
+//            myBitmap = rotateImage(myBitmap, 90);
             ImageView myImage = findViewById(R.id.photo);
             myImage.setImageBitmap(myBitmap);
         } else {
@@ -43,7 +43,7 @@ public class ImageDisplayActivity extends AppCompatActivity {
         File imgFile = new File(getFilesDir().getAbsolutePath() + "/" + photoIndex + ".jpg");
         if (imgFile.exists()) {
             Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-            myBitmap = rotateImage(myBitmap, 90);
+            //myBitmap = rotateImage(myBitmap, 90);
             ImageView myImage = findViewById(R.id.photo);
             myImage.setImageBitmap(myBitmap);
         photoIndex++;
