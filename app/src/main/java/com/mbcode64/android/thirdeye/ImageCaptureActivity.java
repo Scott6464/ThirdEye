@@ -47,6 +47,7 @@ public class ImageCaptureActivity extends Activity {
 
     //todo photo frequency and fast photos when motion detected.
 
+    //todo image preview not displaying
     private static Bitmap rotateImage(Bitmap img, int degree) {
         Matrix matrix = new Matrix();
         matrix.postRotate(degree);
@@ -65,8 +66,6 @@ public class ImageCaptureActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         myDrive = new gDrive(this);
-        GIF myGif = new GIF(this);
-        myGif.deletejpgs();
         setContentView(R.layout.capture);
         final CameraSurfaceView cameraView = new CameraSurfaceView(getApplicationContext());
         FrameLayout frame = findViewById(R.id.frame);

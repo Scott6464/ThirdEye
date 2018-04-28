@@ -36,9 +36,12 @@ public class EmailAlarm extends BroadcastReceiver {
             public void run() {
                 myDrive = new gDrive(c1);
                 myGif = new GIF(c1);
-                //myDrive.getAppFolder(c1.getString(R.string.app_name));
-                //todo count the images online instead
                 numEvents = myGif.deletejpgs();
+                //todo get rid of this hack
+                try {
+                    Thread.sleep(5000);
+                } catch (Exception e) {
+                }
                 myDrive.getWebLink(numEvents);         // upload it to google drive
                 // get the drive link to the day's gif
                 // email is sent after link is found.

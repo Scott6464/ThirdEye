@@ -1,10 +1,14 @@
 package com.mbcode64.android.thirdeye;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.util.Patterns;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -36,6 +40,7 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 /**
  * Created by Scott on 2/23/2018.
@@ -48,6 +53,7 @@ public class gDrive {
     private static final int REQUEST_CODE_CAPTURE_IMAGE = 1;
     private static final int REQUEST_CODE_CREATOR = 2;
     String webLink = "insert drive link here";
+    String webDateLink = "Date Folder";
     String emailAddress = "email@address";
     //private DriveClient mDriveClient;
     private DriveResourceClient mDriveResourceClient;
@@ -56,6 +62,7 @@ public class gDrive {
     private DriveFolder myDateFolder;
     private int daysToSave;
     private int jpgIndex;
+    private String appFolder;
 
     public gDrive(Context c) {
         this.c = c;
@@ -67,7 +74,8 @@ public class gDrive {
         Log.i("Main Pref", savePref);
         daysToSave = Integer.parseInt(savePref);
         jpgIndex = 0;
-        getAppFolder("Third Eye");
+        appFolder = "Third Eye" + "-" + Build.MANUFACTURER + " " + Build.MODEL;
+        getAppFolder(appFolder);
     }
 
     public static GoogleSignInClient signInPlay(Context c) {
@@ -95,13 +103,13 @@ public class gDrive {
                         })
   */
 
-    public void getDateFolder() {
+    public String getDateFolder() {
         final String folderName = getDate();
         Log.i("Drive finding date", folderName);
         Query query = new Query.Builder()
                 .addFilter(Filters.eq(SearchableField.TITLE, folderName))
                 .build();
-        Task<MetadataBuffer> queryTask = mDriveResourceClient.query(query);
+        Task<MetadataBuffer> queryTask = mDriveResourceClient.queryChildren(myDriveFolder, query);
         queryTask
                 .addOnSuccessListener(
                         new OnSuccessListener<MetadataBuffer>() {
@@ -110,6 +118,7 @@ public class gDrive {
                                 if (metadataBuffer.getCount() > 0) {
                                     Log.i("Date Drive found", folderName);
                                     Metadata myMetadata = metadataBuffer.get(0); //get the first item found
+                                    webDateLink = myMetadata.getAlternateLink();
                                     Log.i("Date Search found", myMetadata.getTitle());
                                     myDateFolder = myMetadata.getDriveId().asDriveFolder();
                                 } else {
@@ -125,8 +134,7 @@ public class gDrive {
 
                     }
                 });
-
-
+        return webDateLink;
     }
 
 
@@ -170,7 +178,6 @@ public class gDrive {
                   */
                 });
     }
-
 
 
     /**
@@ -295,7 +302,6 @@ public class gDrive {
                   */
                 });
     }
-
 
 
     /**
@@ -470,7 +476,7 @@ public class gDrive {
         }
     }
 
-
+    //todo one search function search(folder, string)
 
 
     public String getWebLink(final int numEvents) {
@@ -479,32 +485,31 @@ public class gDrive {
         Query query = new Query.Builder()
                 .addFilter(Filters.contains(SearchableField.TITLE, date))
                 .build();
-        Task<MetadataBuffer> queryTask = mDriveResourceClient.query(query);
-        queryTask
-                .addOnSuccessListener(
-                        new OnSuccessListener<MetadataBuffer>() {
-                            @Override
-                            public void onSuccess(final MetadataBuffer metadataBuffer) {
-                                Metadata myMetadata = metadataBuffer.get(0);
-                                webLink = myMetadata.getEmbedLink();//Integer.toString(metadataBuffer.getCount());//getEmbedLink();
-                                Log.i("Drive link", Integer.toString(metadataBuffer.getCount()) + webLink);
-                                metadataBuffer.release();
-                                if (webLink != null) {
-                                    emailGif(numEvents);
-                                } else {
-                                    getWebLink(numEvents);
+        if (myDateFolder != null) {
+            Task<MetadataBuffer> queryTask = mDriveResourceClient.queryChildren(myDateFolder, query);
+            queryTask
+                    .addOnSuccessListener(
+                            new OnSuccessListener<MetadataBuffer>() {
+                                @Override
+                                public void onSuccess(final MetadataBuffer metadataBuffer) {
+                                    if (metadataBuffer.getCount() > 0) {
+                                        Metadata myMetadata = metadataBuffer.get(0);
+                                        webLink = myMetadata.getEmbedLink();
+                                        Log.i("Drive link", Integer.toString(metadataBuffer.getCount()) + webLink);
+                                        metadataBuffer.release();
+                                        emailGif(numEvents);
+                                    }
                                 }
-                                //searchDestroy();
-                            }
-                        })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.i("Drive Search not found", "");
-                        webLink = "getWebLink failed";
+                            })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.i("Drive Search not found", "");
+                            webLink = "getWebLink failed";
 
-                    }
-                });
+                        }
+                    });
+        }
         return webLink;
     }
 
@@ -517,17 +522,27 @@ public class gDrive {
                     String user = "thirdeye@mbcode.net";
                     String password = "Crouton1!";
                     String recipient = emailAddress;
-                    String emailBody = Integer.toString(numEvents) + " motion events: " + webLink;
+                    String emailBody = "Motion Folder " + webDateLink + "<br><br>" + Integer.toString(numEvents) + " motion events: " + webLink;
                     String pathForAppFiles = c.getFilesDir().getAbsolutePath() + "/output.gif"; //+ STILL_IMAGE_FILE;
                     GMailSender sender = new GMailSender(user, password);
                     sender.sendMail("Third Eye Daily Digest", emailBody, user, recipient, pathForAppFiles);
                     Log.i("Email", "email sent");
-                } catch (Exception e)
-                {
+                } catch (Exception e) {
                     Log.e("SendMail", e.getMessage(), e);
                 }
             }
         };
         t.start();
     }
+
+    private void getEmailAddress() {
+        Pattern emailPattern = Patterns.EMAIL_ADDRESS; // API level 8+
+        Account[] accounts = AccountManager.get(c).getAccounts();
+        for (Account account : accounts) {
+            if (emailPattern.matcher(account.name).matches()) {
+                String possibleEmail = account.name;
+            }
+        }
+    }
+
 }

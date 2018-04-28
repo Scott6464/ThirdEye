@@ -5,7 +5,6 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -28,13 +27,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.GoogleAuthProvider;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -87,57 +82,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
-        Log.i(TAG, "firebaseAuthWithGoogle:" + acct.getId());
-
-        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
-/*        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithCredential:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
-     //                       updateUI(user);
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInWithCredential:failure", task.getException());
-     //                       Snackbar.make(findViewById(R.id.main_layout), "Authentication Failed.", Snackbar.LENGTH_SHORT).show();
-     //                       updateUI(null);
-                        }
-
-                        // ...
-                    }
-                });
-  */
-    }
-
-
-
-
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
-            case REQUEST_CODE_SIGN_IN:
-                Log.i(TAG, "Sign in request code " + Integer.toString(resultCode));
-                // Called after user is signed in.
-                if (resultCode == RESULT_OK) {
-                    Log.i(TAG, "Signed in successfully.");
-                    myDrive = new gDrive(this);
-                    //myDrive.createFolder(getString(R.string.app_name));
-                    //myGif = new GIF(this);
-                    //myGif.makeGif();
-                    myDrive.getAppFolder(getString(R.string.app_name));
-                    myDrive.getAppFolder(getDate());
-                    //myDrive.saveToDrive();
-                    //myDrive.searchDestroy();
-                    //myDrive.getWebLink();
 
-
-                }
-                break;
             case RC_SIGN_IN:
                 Log.i(TAG, "Firebase Sign in request code " + Integer.toString(resultCode));
                 // Called after user is signed in.
@@ -160,43 +109,11 @@ public class MainActivity extends AppCompatActivity {
                         // ...
                     }
                     break;
-
-/*            case REQUEST_CODE_CAPTURE_IMAGE:
-                Log.i(TAG, "capture image request code");
-                // Called after a photo has been taken.
-                if (resultCode == Activity.RESULT_OK) {
-                    Log.i(TAG, "Image captured successfully.");
-                    // Store the image data as a bitmap for writing later.
-                    mBitmapToSave = (Bitmap) data.getExtras().get("data");
-                    createFileInAppFolder();
-                    //saveFileToDrive();
-                }
-                break;
-            case REQUEST_CODE_CREATOR:
-                Log.i(TAG, "creator request code");
-                // Called after a file is saved to Drive.
-                if (resultCode == RESULT_OK) {
-                    Log.i(TAG, "Image successfully saved.");
-                    mBitmapToSave = null;
-                    // Just start the camera again for another photo.
-                    startActivityForResult(
-                            new Intent(MediaStore.ACTION_IMAGE_CAPTURE), REQUEST_CODE_CAPTURE_IMAGE);
-                }
-                break;
-*/
                 }
         }
     }
 
 
-    private String getDate() {
-        Date c = Calendar.getInstance().getTime();
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-        return df.format(c);
-    }
-
-
-    // todo support multiple cameras
     public void setEmailAlarm() {
 
         AlarmManager alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -206,9 +123,9 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "Setting the alarm");
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 42);
-        //calendar.add(Calendar.DATE, 1);
+        calendar.add(Calendar.DATE, 1);
         alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, alarmIntent);
 
@@ -219,24 +136,13 @@ public class MainActivity extends AppCompatActivity {
         calendar1.setTimeInMillis(System.currentTimeMillis());
         calendar1.set(Calendar.HOUR_OF_DAY, 1);
         calendar1.set(Calendar.MINUTE, 40);
-        calendar1.add(Calendar.DATE, 1);
+        //calendar1.add(Calendar.DATE, 1);
 
         alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar1.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, emailAlarmIntent);
 
 
     }
-
-    public String getDeviceName() {
-        String manufacturer = Build.MANUFACTURER;
-        String model = Build.MODEL;
-        if (model.toLowerCase().startsWith(manufacturer.toLowerCase())) {
-            return (model);
-        } else {
-            return (manufacturer) + " " + model;
-        }
-    }
-
 
 
     private void startAnimation() {
