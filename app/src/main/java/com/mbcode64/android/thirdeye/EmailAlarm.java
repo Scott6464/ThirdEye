@@ -39,7 +39,7 @@ public class EmailAlarm extends BroadcastReceiver {
                 numEvents = myGif.deletejpgs();
                 //todo get rid of this hack
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(10000);
                 } catch (Exception e) {
                 }
                 myDrive.getWebLink(numEvents);         // upload it to google drive

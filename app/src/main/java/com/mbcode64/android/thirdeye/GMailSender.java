@@ -5,7 +5,6 @@ package com.mbcode64.android.thirdeye;
  * Created by Scott on 12/12/2017.
  */
 
-//todo verify email address
 
 
 import android.util.Log;
@@ -93,7 +92,7 @@ public class GMailSender extends javax.mail.Authenticator {
     }
 
 
-    public synchronized void sendMail(String subject, String body, String sender, String recipients, String attachment) throws Exception {
+    public synchronized void sendMail(String subject, String body, String sender, String recipients, String attachment) {
         try {
             MimeMessage message = new MimeMessage(session);
             MimeBodyPart htmlPart = new MimeBodyPart();
@@ -155,7 +154,7 @@ public class GMailSender extends javax.mail.Authenticator {
                 return type;
         }
 
-        public InputStream getInputStream() throws IOException {
+        public InputStream getInputStream() {
             return new ByteArrayInputStream(data);
         }
 

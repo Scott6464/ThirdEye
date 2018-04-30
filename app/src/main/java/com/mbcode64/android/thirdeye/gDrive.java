@@ -1,18 +1,13 @@
 package com.mbcode64.android.thirdeye;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.util.Patterns;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
@@ -40,7 +35,6 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.regex.Pattern;
 
 /**
  * Created by Scott on 2/23/2018.
@@ -49,13 +43,9 @@ import java.util.regex.Pattern;
 public class gDrive {
 
     private static final String TAG = "Google drive";
-    private static final int REQUEST_CODE_SIGN_IN = 0;
-    private static final int REQUEST_CODE_CAPTURE_IMAGE = 1;
-    private static final int REQUEST_CODE_CREATOR = 2;
     String webLink = "insert drive link here";
     String webDateLink = "Date Folder";
     String emailAddress = "email@address";
-    //private DriveClient mDriveClient;
     private DriveResourceClient mDriveResourceClient;
     private Context c;
     private DriveFolder myDriveFolder;
@@ -69,39 +59,15 @@ public class gDrive {
         mDriveResourceClient = Drive.getDriveResourceClient(c, GoogleSignIn.getLastSignedInAccount(c));
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
         boolean emailPref = sharedPref.getBoolean("pref_email", true);
-        emailAddress = sharedPref.getString("pref_address", "email@address");
-        String savePref = sharedPref.getString("pref_save", "7");
-        Log.i("Main Pref", savePref);
+        String savePref = sharedPref.getString("pref_save", "6");
+        emailAddress = GoogleSignIn.getLastSignedInAccount(c).getEmail();
+        Log.i("Email ", emailAddress);
         daysToSave = Integer.parseInt(savePref);
         jpgIndex = 0;
         appFolder = "Third Eye" + "-" + Build.MANUFACTURER + " " + Build.MODEL;
         getAppFolder(appFolder);
     }
 
-    public static GoogleSignInClient signInPlay(Context c) {
-        Log.i(TAG, "Start sign in");
-        GoogleSignInOptions signInOptions =
-                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                        .requestScopes(Drive.SCOPE_FILE, Drive.SCOPE_APPFOLDER)
-                        .build();
-        return GoogleSignIn.getClient(c, signInOptions);
-    }
-
-/*
-     if (metadataBuffer.getCount() > 0) {
-        Log.i("Drive found", folderName);
-        Metadata myMetadata = metadataBuffer.get(0); //get the first item found
-        Log.i("Search found", myMetadata.getCreatedDate().toString());
-        myDriveFolder = myMetadata.getDriveId().asDriveFolder();
-        getDateFolder(); // After App folder is found, create date folder.
-    } else {
-        Log.i("Search failed", folderName);
-        createFolder(folderName);
-    }
-                                metadataBuffer.release();
-}
-                        })
-  */
 
     public String getDateFolder() {
         final String folderName = getDate();
@@ -217,7 +183,6 @@ public class gDrive {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-
                     }
                 });
     }
@@ -250,9 +215,6 @@ public class gDrive {
                                     createFolder(folderName);
                                 }
                                 metadataBuffer.release();
-                                //searchDestroy();
-
-
                             }
                         })
                 .addOnFailureListener(new OnFailureListener() {
@@ -526,7 +488,7 @@ public class gDrive {
                     String pathForAppFiles = c.getFilesDir().getAbsolutePath() + "/output.gif"; //+ STILL_IMAGE_FILE;
                     GMailSender sender = new GMailSender(user, password);
                     sender.sendMail("Third Eye Daily Digest", emailBody, user, recipient, pathForAppFiles);
-                    Log.i("Email", "email sent");
+                    Log.i("Email", "email sent " + recipient);
                 } catch (Exception e) {
                     Log.e("SendMail", e.getMessage(), e);
                 }
@@ -535,14 +497,5 @@ public class gDrive {
         t.start();
     }
 
-    private void getEmailAddress() {
-        Pattern emailPattern = Patterns.EMAIL_ADDRESS; // API level 8+
-        Account[] accounts = AccountManager.get(c).getAccounts();
-        for (Account account : accounts) {
-            if (emailPattern.matcher(account.name).matches()) {
-                String possibleEmail = account.name;
-            }
-        }
-    }
 
 }

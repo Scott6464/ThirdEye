@@ -29,8 +29,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.ListIterator;
 
-// todo video
-// todo encrypted email just for securecam
+
 // todo low light
 
 
@@ -47,7 +46,6 @@ public class ImageCaptureActivity extends Activity {
 
     //todo photo frequency and fast photos when motion detected.
 
-    //todo image preview not displaying
     private static Bitmap rotateImage(Bitmap img, int degree) {
         Matrix matrix = new Matrix();
         matrix.postRotate(degree);
@@ -80,13 +78,10 @@ public class ImageCaptureActivity extends Activity {
             public void onClick(View v) {
                 if (captureButton.getText().equals("Start Camera")) {
                     captureButton.setText("Stop Camera");
-                    //wl.acquire();
                     startCameraThread(cameraView);
                 } else {
                     captureButton.setText("Start Camera");
                     handler.removeCallbacksAndMessages(null);
-                    //wl.release();
-
                 }
             }
         });
@@ -137,11 +132,11 @@ public class ImageCaptureActivity extends Activity {
                         @Override
                         public void run() {
                             try {
-                                //bitmap = rotateImage(bitmap, 90);
+                                //todo compress image first before editing
                                 timeStampBitmap = timeStamp(bitmap);
                                 timeStampBitmap = rotateImage(timeStampBitmap, 90);
                                 fos = openFileOutput(Integer.toString(i) + ".jpg", MODE_PRIVATE);
-                                timeStampBitmap.compress(Bitmap.CompressFormat.JPEG, 50, fos);
+                                timeStampBitmap.compress(Bitmap.CompressFormat.JPEG, 75, fos);
                                 fos.close();
                                 i++;
                                 Log.i("Image Capture", "Motion Detected");
@@ -241,22 +236,19 @@ public class ImageCaptureActivity extends Activity {
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             try {
                 Camera.Parameters params = camera.getParameters();
-                // not all cameras supporting setting arbitrary sizes
+                // todo focus mode not continuous
+
                 List<Size> sizes = params.getSupportedPreviewSizes();
                 Size pickedSize = getBestFit(sizes, width, height);
                 if (pickedSize != null) {
                     params.setPreviewSize(pickedSize.width, pickedSize.height);
-                    Log.d(TAG, "Preview size: (" + pickedSize.width + ","
+                    Log.i(TAG, "Preview size: (" + pickedSize.width + ","
                             + pickedSize.height + ")");
                     // even after setting a supported size, the preview size may
                     // capture end up just being the surface size (supported or
                     // not)
                     camera.setParameters(params);
                 }
-                // set the orientation to standard portrait.
-                // Do this only if you know the specific orientation (0,90,180,
-                // etc.)
-                // Only works on API Level 8+
                 camera.setDisplayOrientation(90);
                 camera.startPreview();
             } catch (Exception e) {

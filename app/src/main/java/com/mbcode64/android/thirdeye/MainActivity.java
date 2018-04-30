@@ -19,12 +19,15 @@ import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.drive.Drive;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
@@ -51,62 +54,45 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         startAnimation();
         ActivityCompat.requestPermissions(this, new String[]
-                {Manifest.permission.CAMERA, Manifest.permission.INTERNET,
-                        Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                {Manifest.permission.CAMERA, Manifest.permission.INTERNET, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
 
-//        if (!initPref) {
-        mAuth = FirebaseAuth.getInstance();
-        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
-
+        Log.i(TAG, "start up");
         // Configure Google Sign In
         String webclientid = "287235660811-dp5kmjlhm64t4mh1srp0q3t2cmqs0f4n.apps.googleusercontent.com";
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken((webclientid))
-                .requestEmail()
+                //.requestIdToken((webclientid))
+                .requestScopes(Drive.SCOPE_FILE, Drive.SCOPE_APPFOLDER)
                 .build();
-//        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-//        startActivityForResult(signInIntent, RC_SIGN_IN);
-
-        mGoogleSignInClient = gDrive.signInPlay(this);
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        mAuth = FirebaseAuth.getInstance();
         startActivityForResult(mGoogleSignInClient.getSignInIntent(), RC_SIGN_IN);
-        Bundle bundle = new Bundle();
-        bundle.putString(FirebaseAnalytics.Param.ITEM_ID, "id");
-        bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, "name");
-        bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "image");
-        mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
-        //       MobileAds.initialize(this, "ca-app-pub-4239779371303218~2629368045");
-        //       mAdView = findViewById(R.id.adView);
-        //       AdRequest adRequest = new AdRequest.Builder().build();
-        //       mAdView.loadAd(adRequest);
-//        }
+
+        // Display the ad
+        MobileAds.initialize(this, "ca-app-pub-4239779371303218~2629368045");
+        mAdView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
     }
 
+    //todo email remotely
+    //todo don't save images locally
 
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
-
             case RC_SIGN_IN:
-                Log.i(TAG, "Firebase Sign in request code " + Integer.toString(resultCode));
-                // Called after user is signed in.
+                Log.i(TAG, "Sign in request code " + Integer.toString(resultCode));
                 if (resultCode == RESULT_OK) {
-                    Log.i(TAG, "Firebase Signed in successfully.");
+                    Log.i(TAG, "Signed in successfully.");
                     Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
                     try {
-                        // Google Sign In was successful, authenticate with Firebase
                         GoogleSignInAccount account = task.getResult(ApiException.class);
-                        //firebaseAuthWithGoogle(account);
                         myDrive = new gDrive(this);
-                        //myDrive.emailGif();
                         setEmailAlarm();
-
-
                     } catch (ApiException e) {
-                        // Google Sign In failed, update UI appropriately
                         Log.i(TAG, "Google sign in failed", e);
-                        Toast.makeText(this, "Sign in Failed. App will not work properly.", Toast.LENGTH_LONG).show();
-                        // ...
+                        Toast.makeText(this, "Google sign in Failed. App will not work properly.", Toast.LENGTH_LONG).show();
                     }
                     break;
                 }
