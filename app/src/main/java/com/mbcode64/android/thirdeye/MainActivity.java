@@ -32,7 +32,15 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Calendar;
+import java.util.Random;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -90,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
                         GoogleSignInAccount account = task.getResult(ApiException.class);
                         myDrive = new gDrive(this);
                         setEmailAlarm();
+                        //sendEmail();
                     } catch (ApiException e) {
                         Log.i(TAG, "Google sign in failed", e);
                         Toast.makeText(this, "Google sign in Failed. App will not work properly.", Toast.LENGTH_LONG).show();
@@ -97,6 +106,55 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
         }
+    }
+
+    private void sendEmail() {
+
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    URL url = new URL("http://mbcode.net/b.pl?gif=gdrive");
+                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                    int responseCode = urlConnection.getResponseCode();
+
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        String server_response = readStream(urlConnection.getInputStream());
+                        Log.i("CatalogClient", server_response);
+                    }
+                    Log.i(TAG, "http success");
+                } catch (MalformedURLException ex) {
+                    Log.e("httptest", Log.getStackTraceString(ex));
+                } catch (IOException ex) {
+                    Log.e("httptest", Log.getStackTraceString(ex));
+                }
+            }
+        }).start();
+    }
+
+
+// Converting InputStream to String
+
+    private String readStream(InputStream in) {
+        BufferedReader reader = null;
+        StringBuffer response = new StringBuffer();
+        try {
+            reader = new BufferedReader(new InputStreamReader(in));
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return response.toString();
     }
 
 
@@ -109,19 +167,22 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "Setting the alarm");
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
         calendar.set(Calendar.MINUTE, 42);
-        calendar.add(Calendar.DATE, 1);
+        //calendar.add(Calendar.DATE, 1);
         alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, alarmIntent);
 
+        Random r = new Random();
+        int hour = r.nextInt(5);
+        int minute = r.nextInt(60);
 
         Intent emailIntent = new Intent(this, EmailAlarm.class);
         PendingIntent emailAlarmIntent = PendingIntent.getBroadcast(this, 1, emailIntent, 0);
         Calendar calendar1 = Calendar.getInstance();
         calendar1.setTimeInMillis(System.currentTimeMillis());
-        calendar1.set(Calendar.HOUR_OF_DAY, 1);
-        calendar1.set(Calendar.MINUTE, 40);
+        calendar1.set(Calendar.HOUR_OF_DAY, hour);
+        calendar1.set(Calendar.MINUTE, minute);
         //calendar1.add(Calendar.DATE, 1);
 
         alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar1.getTimeInMillis(),

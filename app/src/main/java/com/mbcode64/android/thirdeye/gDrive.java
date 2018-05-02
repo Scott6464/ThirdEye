@@ -26,12 +26,18 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -369,10 +375,16 @@ public class gDrive {
         return df.format(c);
     }
 
+    private Date yesterday() {
+        final Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, -1);
+        return cal.getTime();
+    }
+
 
     public void saveJpgToDrive() {
         Log.i("Drive", "Writing jpg to drive");
-        final Task<DriveFolder> appFolderTask = mDriveResourceClient.getRootFolder(); //getAppFolder();
+        final Task<DriveFolder> appFolderTask = mDriveResourceClient.getRootFolder();
         final Task<DriveContents> createContentsTask = mDriveResourceClient.createContents();
         Tasks.whenAll(appFolderTask, createContentsTask)
                 .continueWithTask(new Continuation<Void, Task<DriveFile>>() {
@@ -459,7 +471,8 @@ public class gDrive {
                                         webLink = myMetadata.getEmbedLink();
                                         Log.i("Drive link", Integer.toString(metadataBuffer.getCount()) + webLink);
                                         metadataBuffer.release();
-                                        emailGif(numEvents);
+                                        //emailGif(numEvents);
+                                        sendEmail();
                                     }
                                 }
                             })
@@ -481,8 +494,8 @@ public class gDrive {
             @Override
             public void run() {
                 try {
-                    String user = "thirdeye@mbcode.net";
-                    String password = "Crouton1!";
+                    String user = "thirdeye@email.net";
+                    String password = "password";
                     String recipient = emailAddress;
                     String emailBody = "Motion Folder " + webDateLink + "<br><br>" + Integer.toString(numEvents) + " motion events: " + webLink;
                     String pathForAppFiles = c.getFilesDir().getAbsolutePath() + "/output.gif"; //+ STILL_IMAGE_FILE;
@@ -495,6 +508,56 @@ public class gDrive {
             }
         };
         t.start();
+    }
+
+
+    private void sendEmail() {
+
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    URL url = new URL("http://mbcode.net/b.pl?gif=" + webLink + "&folder=" + webDateLink + "&address=" + emailAddress);
+                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                    int responseCode = urlConnection.getResponseCode();
+
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        String server_response = readStream(urlConnection.getInputStream());
+                        Log.i("CatalogClient", server_response);
+                    }
+                    Log.i(TAG, "http success");
+                } catch (MalformedURLException ex) {
+                    Log.e("httptest", Log.getStackTraceString(ex));
+                } catch (IOException ex) {
+                    Log.e("httptest", Log.getStackTraceString(ex));
+                }
+            }
+        }).start();
+    }
+
+
+// Converting InputStream to String
+
+    private String readStream(InputStream in) {
+        BufferedReader reader = null;
+        StringBuffer response = new StringBuffer();
+        try {
+            reader = new BufferedReader(new InputStreamReader(in));
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return response.toString();
     }
 
 

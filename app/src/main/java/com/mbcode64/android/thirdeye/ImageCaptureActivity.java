@@ -122,6 +122,10 @@ public class ImageCaptureActivity extends Activity {
      * @param cameraView
      */
 
+    //todo email via php
+    //todo bitmap save to drive
+    // todo camera focus
+
     private void startCamera(final CameraSurfaceView cameraView) {
         cameraView.capture(new Camera.PictureCallback() {
 
@@ -237,7 +241,7 @@ public class ImageCaptureActivity extends Activity {
             try {
                 Camera.Parameters params = camera.getParameters();
                 // todo focus mode not continuous
-
+//                params.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
                 List<Size> sizes = params.getSupportedPreviewSizes();
                 Size pickedSize = getBestFit(sizes, width, height);
                 if (pickedSize != null) {
