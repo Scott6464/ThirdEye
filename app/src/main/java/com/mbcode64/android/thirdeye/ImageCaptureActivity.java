@@ -144,6 +144,7 @@ public class ImageCaptureActivity extends Activity {
         Log.i(TAG, "Camera started");
         cameraView.capture(new Camera.PictureCallback() {
 
+
             public void onPictureTaken(byte[] data, Camera camera) {
                 Log.i(TAG, "Picture taken");
                 bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
