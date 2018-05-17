@@ -82,7 +82,6 @@ public class MainActivity extends AppCompatActivity {
         mAdView.loadAd(adRequest);
     }
 
-    //todo email remotely
     //todo don't save images locally
 
     @Override
@@ -96,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
                     Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
                     try {
                         GoogleSignInAccount account = task.getResult(ApiException.class);
-                        myDrive = new gDrive(this);
+                        myDrive = new gDrive(this, "main");
                         setEmailAlarm();
                         //sendEmail();
                     } catch (ApiException e) {
@@ -168,14 +167,16 @@ public class MainActivity extends AppCompatActivity {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
         calendar.set(Calendar.HOUR_OF_DAY, 23);
-        calendar.set(Calendar.MINUTE, 42);
+        calendar.set(Calendar.MINUTE, 55);
         //calendar.add(Calendar.DATE, 1);
         alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, alarmIntent);
 
         Random r = new Random();
-        int hour = r.nextInt(5);
-        int minute = r.nextInt(60);
+        int hour = r.nextInt(4);
+        int minute = r.nextInt(59);
+        //hour = 1;
+        //minute = 5;
 
         Intent emailIntent = new Intent(this, EmailAlarm.class);
         PendingIntent emailAlarmIntent = PendingIntent.getBroadcast(this, 1, emailIntent, 0);

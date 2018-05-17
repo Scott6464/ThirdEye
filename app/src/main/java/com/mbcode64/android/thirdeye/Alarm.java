@@ -5,10 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-
 
 /**
  * Created by Scott on 1/18/2018.
@@ -45,27 +41,18 @@ public class Alarm extends BroadcastReceiver {
         Thread t = new Thread() {
             @Override
             public void run() {
-                myDrive = new gDrive(c1);
+                myDrive = new gDrive(c1, "alarm");
                 myGif = new GIF(c1);
-
-                //myDrive.getAppFolder(c1.getString(R.string.app_name));
                 numEvents = myGif.makeGif();    // make the day's gif
-                myDrive.saveGifToDrive(numEvents);         // upload it to google drive
-                // get the drive link to the day's gif
-                // email is sent after link is found.
-                //myDrive.getAppFolder(getDate()); //create the day's drive folder yyyy-mm-dd
-                //myDrive.searchDestroy();        // get rid of the week old gif
             }
         };
         t.start();
-
-    }
-
-
-    private String getDate() {
-        Date c = Calendar.getInstance().getTime();
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-        return df.format(c);
+        try {
+            t.join();
+            myDrive.saveGifToDrive(numEvents);
+            myDrive.createDateFolder(myDrive.tomorrow());
+        } catch (Exception e) {
+        }
     }
 
 }

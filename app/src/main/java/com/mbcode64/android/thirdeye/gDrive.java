@@ -59,9 +59,11 @@ public class gDrive {
     private int daysToSave;
     private int jpgIndex;
     private String appFolder;
+    private String activityName;
 
-    public gDrive(Context c) {
+    public gDrive(Context c, String activityName) {
         this.c = c;
+        this.activityName = activityName;
         mDriveResourceClient = Drive.getDriveResourceClient(c, GoogleSignIn.getLastSignedInAccount(c));
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
         boolean emailPref = sharedPref.getBoolean("pref_email", true);
@@ -72,11 +74,12 @@ public class gDrive {
         jpgIndex = 0;
         appFolder = "Third Eye" + "-" + Build.MANUFACTURER + " " + Build.MODEL;
         getAppFolder(appFolder);
+        Log.i(TAG, "context name " + c.toString());
     }
 
 
-    public String getDateFolder() {
-        final String folderName = getDate();
+    public String getDateFolder(String date) {
+        final String folderName = date;
         Log.i("Drive finding date", folderName);
         Query query = new Query.Builder()
                 .addFilter(Filters.eq(SearchableField.TITLE, folderName))
@@ -93,6 +96,9 @@ public class gDrive {
                                     webDateLink = myMetadata.getAlternateLink();
                                     Log.i("Date Search found", myMetadata.getTitle());
                                     myDateFolder = myMetadata.getDriveId().asDriveFolder();
+                                    if (activityName.equals("email")) {
+                                        getWebLink(0);
+                                    }
                                 } else {
                                     Log.i("Date Search failed", folderName);
                                     createDateFolder(folderName);
@@ -178,7 +184,11 @@ public class gDrive {
                                     Metadata myMetadata = metadataBuffer.get(0); //get the first item found
                                     Log.i("Search found", myMetadata.getCreatedDate().toString());
                                     myDriveFolder = myMetadata.getDriveId().asDriveFolder();
-                                    getDateFolder(); // After App folder is found, create date folder.
+                                    if (activityName.equals("email")) {
+                                        getDateFolder(yesterday());
+                                    } else {
+                                        getDateFolder(getDate());
+                                    } // After App folder is found, create date folder.
                                 } else {
                                     Log.i("Search failed", folderName);
                                     createFolder(folderName);
@@ -204,7 +214,6 @@ public class gDrive {
                 .addFilter(Filters.eq(SearchableField.TITLE, folderName))
                 .build();
         Task<MetadataBuffer> queryTask = mDriveResourceClient.query(query);
-
         queryTask
                 .addOnSuccessListener(
                         new OnSuccessListener<MetadataBuffer>() {
@@ -218,7 +227,8 @@ public class gDrive {
                                     saveJpgToDrive();
                                 } else {
                                     Log.i("Search failed", folderName);
-                                    createFolder(folderName);
+                                    appFolder = "Third Eye" + "-" + Build.MANUFACTURER + " " + Build.MODEL;
+                                    getAppFolder(appFolder);
                                 }
                                 metadataBuffer.release();
                             }
@@ -323,15 +333,11 @@ public class gDrive {
 
     }
 
-    private String getDate() {
-        Date c = Calendar.getInstance().getTime();
-        SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
-        return df.format(c);
-    }
+
 
 
     public void saveGifToDrive(final int numEvents) {
-        getDateFolder();
+        getDateFolder(getDate());
         final Task<DriveFolder> appFolderTask = mDriveResourceClient.getRootFolder();
         final Task<DriveContents> createContentsTask = mDriveResourceClient.createContents();
         Tasks.whenAll(appFolderTask, createContentsTask)
@@ -370,16 +376,33 @@ public class gDrive {
     }
 
     private String getTime() {
-        Date c = Calendar.getInstance().getTime();
+        Date d = Calendar.getInstance().getTime();
         SimpleDateFormat df = new SimpleDateFormat("kk:mm:ss");
+        return df.format(d);
+    }
+
+    private String getDate() {
+        Date c = Calendar.getInstance().getTime();
+        SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
         return df.format(c);
     }
 
-    private Date yesterday() {
-        final Calendar cal = Calendar.getInstance();
+    private String yesterday() {
+        Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, -1);
-        return cal.getTime();
+        Date d = cal.getTime();
+        SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+        return df.format(d);
     }
+
+    public String tomorrow() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, 1);
+        Date d = cal.getTime();
+        SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+        return df.format(d);
+    }
+
 
 
     public void saveJpgToDrive() {
@@ -453,11 +476,11 @@ public class gDrive {
     //todo one search function search(folder, string)
 
 
+
     public String getWebLink(final int numEvents) {
         Log.i("Drive", "getting weblink");
-        String date = "Motion";
         Query query = new Query.Builder()
-                .addFilter(Filters.contains(SearchableField.TITLE, date))
+                .addFilter(Filters.contains(SearchableField.TITLE, "Motion"))
                 .build();
         if (myDateFolder != null) {
             Task<MetadataBuffer> queryTask = mDriveResourceClient.queryChildren(myDateFolder, query);
@@ -470,10 +493,9 @@ public class gDrive {
                                         Metadata myMetadata = metadataBuffer.get(0);
                                         webLink = myMetadata.getEmbedLink();
                                         Log.i("Drive link", Integer.toString(metadataBuffer.getCount()) + webLink);
-                                        metadataBuffer.release();
-                                        //emailGif(numEvents);
                                         sendEmail();
                                     }
+                                    metadataBuffer.release();
                                 }
                             })
                     .addOnFailureListener(new OnFailureListener() {
@@ -494,7 +516,7 @@ public class gDrive {
             @Override
             public void run() {
                 try {
-                    String user = "thirdeye@email.net";
+                    String user = "email";
                     String password = "password";
                     String recipient = emailAddress;
                     String emailBody = "Motion Folder " + webDateLink + "<br><br>" + Integer.toString(numEvents) + " motion events: " + webLink;

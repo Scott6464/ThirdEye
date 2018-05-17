@@ -31,6 +31,8 @@ import java.util.ListIterator;
 
 
 // todo low light
+// todo more sensitive
+
 
 
 public class ImageCaptureActivity extends Activity {
@@ -63,7 +65,7 @@ public class ImageCaptureActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        myDrive = new gDrive(this);
+        myDrive = new gDrive(this, "capture");
         setContentView(R.layout.capture);
         final CameraSurfaceView cameraView = new CameraSurfaceView(getApplicationContext());
         FrameLayout frame = findViewById(R.id.frame);
@@ -73,7 +75,7 @@ public class ImageCaptureActivity extends Activity {
         wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "My Tag");
         final Button captureButton = findViewById(R.id.capture);
         wl.acquire();
-        startCameraThread(cameraView);
+
         captureButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (captureButton.getText().equals("Start Camera")) {
@@ -86,7 +88,7 @@ public class ImageCaptureActivity extends Activity {
             }
         });
         md = new MotionDetection();
-
+        startCamera(cameraView);
     }
 
     @Override
@@ -97,6 +99,7 @@ public class ImageCaptureActivity extends Activity {
     }
 
     private void startCameraThread(final CameraSurfaceView cameraView) {
+        startCamera(cameraView);
 
         final int delay = 2000; //milliseconds
         handler.postDelayed(new Runnable() {
@@ -106,6 +109,18 @@ public class ImageCaptureActivity extends Activity {
             }
         }, delay);
 
+/*
+        Thread t = new Thread() {
+            @Override
+            public void run() { startCamera(cameraView); }
+        };
+        t.start();
+        try{
+        t.join();
+        startCamera(cameraView);
+        }
+        catch (Exception e){}
+*/
     }
 
     private void dispatchTakeVideoIntent() {
@@ -122,14 +137,15 @@ public class ImageCaptureActivity extends Activity {
      * @param cameraView
      */
 
-    //todo email via php
     //todo bitmap save to drive
     // todo camera focus
 
     private void startCamera(final CameraSurfaceView cameraView) {
+        Log.i(TAG, "Camera started");
         cameraView.capture(new Camera.PictureCallback() {
 
             public void onPictureTaken(byte[] data, Camera camera) {
+                Log.i(TAG, "Picture taken");
                 bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                 if (detectMotion(bitmap, oldbitmap)) {
                     Thread t = new Thread() {
@@ -161,8 +177,10 @@ public class ImageCaptureActivity extends Activity {
                 }
                 oldbitmap = bitmap;
                 camera.startPreview();
+                startCamera(cameraView);
             }
         });
+
     }
 
     /**

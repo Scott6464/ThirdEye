@@ -34,19 +34,9 @@ public class EmailAlarm extends BroadcastReceiver {
         Thread t = new Thread() {
             @Override
             public void run() {
-                myDrive = new gDrive(c1);
+                myDrive = new gDrive(c1, "email");
                 myGif = new GIF(c1);
                 numEvents = myGif.deletejpgs();
-                //todo get rid of this hack
-                try {
-                    Thread.sleep(10000);
-                } catch (Exception e) {
-                }
-                myDrive.getWebLink(numEvents);         // upload it to google drive
-                // get the drive link to the day's gif
-                // email is sent after link is found.
-                //myDrive.getAppFolder(getDate()); //create the day's drive folder yyyy-mm-dd
-                //myDrive.searchDestroy();        // get rid of the week old gif
             }
         };
         t.start();

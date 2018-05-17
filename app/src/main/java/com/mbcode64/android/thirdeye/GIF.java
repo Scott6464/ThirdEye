@@ -25,6 +25,11 @@ public class GIF {
     Context c;
     int numEvents;
 
+
+    //TODO limit 50 images
+
+
+
     public GIF(Context c) {
         this.c = c;
         path = c.getFilesDir().getAbsolutePath();
@@ -60,6 +65,7 @@ public class GIF {
             List<Bitmap> bitmap = new ArrayList();
             Bitmap title = BitmapFactory.decodeResource(c.getResources(), R.drawable.eye3);
             bitmap.add(getResizedBitmap(title, 320));
+            //int filesDivisor = (int) files.length/50;
             for (File file : files) {
                 String fileName = file.getName();
                 Log.i("filename1 ", fileName);
@@ -67,6 +73,9 @@ public class GIF {
                     numEvents++;
                     bitmap.add(getResizedBitmap(BitmapFactory.decodeStream
                             (new FileInputStream(path + "/" + fileName)), 320));
+                }
+                if (numEvents > 50) {
+                    break;
                 }
             }
             Bitmap[] bitmapArray = bitmap.toArray(new Bitmap[bitmap.size()]);
