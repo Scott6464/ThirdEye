@@ -110,6 +110,7 @@ public class ImageCaptureActivity extends Activity {
             }
         }, delay);
 
+
 /*
         Thread t = new Thread() {
             @Override
