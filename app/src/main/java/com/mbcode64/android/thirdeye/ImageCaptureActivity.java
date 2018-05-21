@@ -70,7 +70,7 @@ public class ImageCaptureActivity extends Activity {
         final CameraSurfaceView cameraView = new CameraSurfaceView(getApplicationContext());
         FrameLayout frame = findViewById(R.id.frame);
         frame.addView(cameraView);
-
+        Log.i(TAG, "activity started");
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "My Tag");
         final Button captureButton = findViewById(R.id.capture);
@@ -88,6 +88,7 @@ public class ImageCaptureActivity extends Activity {
             }
         });
         md = new MotionDetection();
+        //startCameraThread(cameraView);
         startCamera(cameraView);
     }
 
@@ -178,7 +179,6 @@ public class ImageCaptureActivity extends Activity {
                 }
                 oldbitmap = bitmap;
                 camera.startPreview();
-                startCamera(cameraView);
             }
         });
 
