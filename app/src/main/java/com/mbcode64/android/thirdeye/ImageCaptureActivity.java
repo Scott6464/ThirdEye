@@ -2,7 +2,6 @@ package com.mbcode64.android.thirdeye;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -11,11 +10,12 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
+import android.media.CamcorderProfile;
+import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -24,6 +24,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -31,11 +32,9 @@ import java.util.ListIterator;
 
 
 // todo low light
-// todo more sensitive
 
 
-
-public class ImageCaptureActivity extends Activity {
+public class ImageCaptureActivity extends Activity implements MediaRecorder.OnInfoListener {
 
     private static final String TAG = "StillImageActivity";
     final Handler handler = new Handler();
@@ -45,15 +44,23 @@ public class ImageCaptureActivity extends Activity {
     FileOutputStream fos;
     gDrive myDrive;
     PowerManager.WakeLock wl;
+    MediaRecorder recorder;
+    SurfaceHolder holder;
+    CameraSurfaceView cameraView;
 
     //todo photo frequency and fast photos when motion detected.
 
     private static Bitmap rotateImage(Bitmap img, int degree) {
         Matrix matrix = new Matrix();
         matrix.postRotate(degree);
-        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
-        img.recycle();
-        return rotatedImg;
+        return Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
+    }
+
+    @Override
+    protected void onDestroy() {
+        wl.release();
+        super.onDestroy();
+
     }
 
     /**
@@ -68,6 +75,7 @@ public class ImageCaptureActivity extends Activity {
         myDrive = new gDrive(this, "capture");
         setContentView(R.layout.capture);
         final CameraSurfaceView cameraView = new CameraSurfaceView(getApplicationContext());
+        this.cameraView = cameraView;
         FrameLayout frame = findViewById(R.id.frame);
         frame.addView(cameraView);
         Log.i(TAG, "activity started");
@@ -75,7 +83,8 @@ public class ImageCaptureActivity extends Activity {
         wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "My Tag");
         final Button captureButton = findViewById(R.id.capture);
         wl.acquire();
-
+        recorder = new MediaRecorder();
+        initRecorder();
         captureButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (captureButton.getText().equals("Start Camera")) {
@@ -88,49 +97,65 @@ public class ImageCaptureActivity extends Activity {
             }
         });
         md = new MotionDetection();
-        //startCameraThread(cameraView);
-        startCamera(cameraView);
-    }
-
-    @Override
-    protected void onDestroy() {
-        wl.release();
-        super.onDestroy();
-
+        startCameraThread(cameraView);
     }
 
     private void startCameraThread(final CameraSurfaceView cameraView) {
-        startCamera(cameraView);
 
         final int delay = 2000; //milliseconds
         handler.postDelayed(new Runnable() {
             public void run() {
                 startCamera(cameraView);
-                handler.postDelayed(this, delay);
+                //              handler.postDelayed(this, delay);
             }
         }, delay);
-
-
-
-/*
-        Thread t = new Thread() {
-            @Override
-            public void run() { startCamera(cameraView); }
-        };
-        t.start();
-        try{
-        t.join();
-        startCamera(cameraView);
-        }
-        catch (Exception e){}
-*/
     }
 
-    private void dispatchTakeVideoIntent() {
+    public void record() {
 
-        Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-        if (takeVideoIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takeVideoIntent, 1);
+        initRecorder();
+        prepareRecorder();
+        recorder.setOnInfoListener(this);
+        recorder.start();
+    }
+
+    private void initRecorder() {
+        recorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+        recorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+        CamcorderProfile cpHigh = CamcorderProfile
+                .get(CamcorderProfile.QUALITY_HIGH);
+        recorder.setProfile(cpHigh);
+        recorder.setOutputFile("/sdcard/videocapture_example.mp4");
+        recorder.setMaxDuration(5000); // 5 seconds
+        recorder.setMaxFileSize(500000); // Approximately .5 megabytes
+    }
+
+    private void prepareRecorder() {
+
+        recorder.setPreviewDisplay(holder.getSurface());
+        try {
+            recorder.prepare();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            finish();
+        } catch (IOException e) {
+            e.printStackTrace();
+            finish();
+        }
+    }
+
+    public void onInfo(MediaRecorder mr, int what, int extra) {
+
+        if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
+            Log.v("VIDEOCAPTURE", "Maximum Duration Reached");
+            mr.stop();
+            cameraView.camera.startPreview();
+            cameraView.camera.autoFocus(new Camera.AutoFocusCallback() {
+                @Override
+                public void onAutoFocus(boolean success, Camera camera) {
+                    startCamera(cameraView);
+                }
+            });
         }
     }
 
@@ -140,50 +165,53 @@ public class ImageCaptureActivity extends Activity {
      * @param cameraView
      */
 
-    //todo bitmap save to drive
     // todo camera focus
-
     private void startCamera(final CameraSurfaceView cameraView) {
-        Log.i(TAG, "Camera started");
+        //Log.i(TAG, "Camera started");
         cameraView.capture(new Camera.PictureCallback() {
-
-
             public void onPictureTaken(byte[] data, Camera camera) {
-                Log.i(TAG, "Picture taken");
+                //Log.i(TAG, "Picture taken");
                 bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                 if (detectMotion(bitmap, oldbitmap)) {
-                    Thread t = new Thread() {
-                        @Override
-                        public void run() {
-                            try {
-                                //todo compress image first before editing
-                                timeStampBitmap = timeStamp(bitmap);
-                                timeStampBitmap = rotateImage(timeStampBitmap, 90);
-                                fos = openFileOutput(Integer.toString(i) + ".jpg", MODE_PRIVATE);
-                                timeStampBitmap.compress(Bitmap.CompressFormat.JPEG, 75, fos);
-                                fos.close();
-                                i++;
-                                Log.i("Image Capture", "Motion Detected");
-                                //Toast.makeText(getApplicationContext(), "Motion " + Integer.toString(i), Toast.LENGTH_SHORT).show();
-                                //dispatchTakeVideoIntent();
-                                myDrive.uploadEvent(i);
-                            } catch (Exception e)
-
-                            {
-                                Log.e("Still", "Error writing file", e);
-                            }
-                        }
-                    };
-                    t.start();
-
+                    saveImage(bitmap);
+                    oldbitmap = bitmap;
+                    record();
                 } else {
-//                    Toast.makeText(getApplicationContext(), "No Motion. " + Integer.toString(i), Toast.LENGTH_SHORT).show();
+                    oldbitmap = bitmap;
+                    camera.startPreview();
+                    camera.autoFocus(new Camera.AutoFocusCallback() {
+                        @Override
+                        public void onAutoFocus(boolean success, Camera camera) {
+                            startCamera(cameraView);
+                        }
+                    });
                 }
-                oldbitmap = bitmap;
-                camera.startPreview();
             }
         });
+    }
 
+    void saveImage(Bitmap b) {
+        record();
+        final Bitmap bf = b;
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    timeStampBitmap = timeStamp(rotateImage(bf, 90));
+                    fos = openFileOutput(Integer.toString(i) + ".jpg", MODE_PRIVATE);
+                    timeStampBitmap.compress(Bitmap.CompressFormat.JPEG, 75, fos);
+                    fos.close();
+                    i++;
+                    Log.i("Image Capture", "Motion Detected");
+                    //Toast.makeText(getApplicationContext(), "Motion " + Integer.toString(i), Toast.LENGTH_SHORT).show();
+                    //dispatchTakeVideoIntent();
+                    myDrive.uploadEvent(i);
+                } catch (Exception e) {
+                    Log.e("Still", "Error writing file", e);
+                }
+            }
+        };
+        t.start();
     }
 
     /**
@@ -198,18 +226,26 @@ public class ImageCaptureActivity extends Activity {
         if (oldbitmap != null) {
             //if (md.detectMotion(oldbitmap, originalBitmap) && md.detectMotion(bitmap, oldbitmap) && md.detectMotion(bitmap, originalBitmap)) {return true;}
             //if (!md.detectMotion(oldbitmap, originalBitmap) && md.detectMotion(bitmap, oldbitmap) && md.detectMotion(bitmap, originalBitmap)) {originalBitmap = oldbitmap; return true;}
-            if (md.detectMotion(oldbitmap, originalBitmap)) {
-                originalBitmap = oldbitmap;
+
+            //no motion
+            if (!(md.detectMotion(oldbitmap, originalBitmap) && md.detectMotion(bitmap, originalBitmap))) {
                 return false;
             }
-            return md.detectMotion(oldbitmap, bitmap);
+            // new background
+            if ((md.detectMotion(bitmap, originalBitmap) && !(md.detectMotion(bitmap, oldbitmap)))) {
+                Log.i(TAG, "new background");
+                originalBitmap = bitmap;
+                return false;
+            }
+            return md.detectMotion(originalBitmap, bitmap);
         } else {
             // first
             originalBitmap = bitmap;
-            return true;
+            return false;
         }
 
     }
+
 
     /**
      * Put a timestamp on the photo
@@ -232,7 +268,6 @@ public class ImageCaptureActivity extends Activity {
         cs.drawText(dateTime, 20f, height + 15f, tPaint);
         return dest;
     }
-
 
     /**
      * CameraSurfaceView class
@@ -260,9 +295,19 @@ public class ImageCaptureActivity extends Activity {
 
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             try {
+                Log.i(TAG, "Surface Changed");
                 Camera.Parameters params = camera.getParameters();
-                // todo focus mode not continuous
-//                params.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
+                List<String> focusModes = params.getSupportedFocusModes();
+                for (String fm : focusModes) {
+                    Log.i("Focus ", fm);
+                }
+
+                if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
+                    params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+                }
+                Log.i(TAG, params.getFocusMode());
+                //Log.i("Params", params.getRo);
+
                 List<Size> sizes = params.getSupportedPreviewSizes();
                 Size pickedSize = getBestFit(sizes, width, height);
                 if (pickedSize != null) {
@@ -279,6 +324,7 @@ public class ImageCaptureActivity extends Activity {
             } catch (Exception e) {
                 Log.e(TAG, "Failed to set preview size", e);
             }
+
         }
 
         private Size getBestFit(List<Size> sizes, int width, int height) {
@@ -306,8 +352,10 @@ public class ImageCaptureActivity extends Activity {
         public void surfaceCreated(SurfaceHolder holder) {
             try {
                 camera = Camera.open();
+                //camera.cancelAutoFocus();
                 camera.setPreviewDisplay(mHolder);
-                camera.cancelAutoFocus();
+
+
             } catch (Exception e) {
                 Log.e(TAG, "Failed to set camera preview display", e);
             }

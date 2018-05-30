@@ -55,7 +55,7 @@ public class gDrive {
     private DriveResourceClient mDriveResourceClient;
     private Context c;
     private DriveFolder myDriveFolder;
-    private DriveFolder myDateFolder;
+    private DriveFolder myDateFolder = null;
     private int daysToSave;
     private int jpgIndex;
     private String appFolder;
@@ -98,6 +98,9 @@ public class gDrive {
                                     myDateFolder = myMetadata.getDriveId().asDriveFolder();
                                     if (activityName.equals("email")) {
                                         getWebLink(0);
+                                    }
+                                    if (activityName.equals("alarm")) {
+                                        uploadGifs();
                                     }
                                 } else {
                                     Log.i("Date Search failed", folderName);
@@ -334,24 +337,31 @@ public class gDrive {
     }
 
 
+    void uploadGifs() {
+        this.c = c;
+        String path = c.getFilesDir().getAbsolutePath();
+        File directory = new File(path + "/");
+        File[] files = directory.listFiles();
+        for (File f : files) {
+            saveGifToDrive(f);
+        }
+    }
 
 
-    public void saveGifToDrive(final int numEvents) {
-        getDateFolder(getDate());
-        final Task<DriveFolder> appFolderTask = mDriveResourceClient.getRootFolder();
+    public void saveGifToDrive(final File f) {
+        Log.i(TAG, myDateFolder.toString());
         final Task<DriveContents> createContentsTask = mDriveResourceClient.createContents();
-        Tasks.whenAll(appFolderTask, createContentsTask)
+        Tasks.whenAll(createContentsTask)
                 .continueWithTask(new Continuation<Void, Task<DriveFile>>() {
                     @Override
                     public Task<DriveFile> then(@NonNull Task<Void> task) {
-                        String title = "MotionEvents.gif";
-                        Log.i("Drive upload ", title);
+                        Log.i("Drive upload ", f.getName());
                         DriveContents contents = createContentsTask.getResult();
                         OutputStream outputStream = contents.getOutputStream();
-                        fileToBitstream(new File(c.getFilesDir().getAbsolutePath() + "/output.gif"), outputStream);
+                        fileToBitstream(f, outputStream);
                         MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                                 .setMimeType("image/gif")
-                                .setTitle(title)
+                                .setTitle(f.getName())
                                 .setStarred(true)
                                 .build();
                         return mDriveResourceClient.createFile(myDateFolder, changeSet, contents);
@@ -362,6 +372,7 @@ public class gDrive {
                         new OnSuccessListener<DriveFile>() {
                             @Override
                             public void onSuccess(DriveFile driveFile) {
+                                Log.i(TAG, "gif upload success");
                                 searchDestroy();
                             }
                         })
@@ -373,6 +384,7 @@ public class gDrive {
                         //finish();
                     }
                 });
+
     }
 
     private String getTime() {
@@ -402,7 +414,6 @@ public class gDrive {
         SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
         return df.format(d);
     }
-
 
 
     public void saveJpgToDrive() {
@@ -476,11 +487,10 @@ public class gDrive {
     //todo one search function search(folder, string)
 
 
-
     public String getWebLink(final int numEvents) {
         Log.i("Drive", "getting weblink");
         Query query = new Query.Builder()
-                .addFilter(Filters.contains(SearchableField.TITLE, "Motion"))
+                .addFilter(Filters.contains(SearchableField.TITLE, "gif"))
                 .build();
         if (myDateFolder != null) {
             Task<MetadataBuffer> queryTask = mDriveResourceClient.queryChildren(myDateFolder, query);
@@ -546,7 +556,7 @@ public class gDrive {
                         String server_response = readStream(urlConnection.getInputStream());
                         Log.i("CatalogClient", server_response);
                     }
-                    Log.i(TAG, "http success");
+                    Log.i(TAG, "http success email sent");
                 } catch (MalformedURLException ex) {
                     Log.e("httptest", Log.getStackTraceString(ex));
                 } catch (IOException ex) {

@@ -8,17 +8,14 @@ import android.util.Log;
 
 /**
  * Created by Scott on 1/18/2018.
- *
+ * <p>
  * Make Gif and upload
- *
+ * <p>
  * Email Gif
- *
+ * <p>
  * Make new day dirs
- *
+ * <p>
  * Delete old dirs
- *
- *
- *
  */
 
 public class Alarm extends BroadcastReceiver {
@@ -30,6 +27,7 @@ public class Alarm extends BroadcastReceiver {
 
     /**
      * Make a gif of captured images from last day. Upload it to Drive and Email it to User.
+     *
      * @param c
      * @param i
      */
@@ -38,21 +36,17 @@ public class Alarm extends BroadcastReceiver {
         Log.i("Alarm", "Making, Uploading Gif");
         this.c = c;
         final Context c1 = c;
-        Thread t = new Thread() {
-            @Override
-            public void run() {
-                myDrive = new gDrive(c1, "alarm");
+        //  Thread t = new Thread() {
+        //     @Override
+        //   public void run() {
+        //super.run();
                 myGif = new GIF(c1);
                 numEvents = myGif.makeGif();    // make the day's gif
-            }
-        };
-        t.start();
-        try {
-            t.join();
-            myDrive.saveGifToDrive(numEvents);
-            myDrive.createDateFolder(myDrive.tomorrow());
-        } catch (Exception e) {
-        }
+        Log.i("Alarm", " making gif");
+        myDrive = new gDrive(c1, "alarm");
+        //myDrive.createDateFolder(myDrive.tomorrow());
+        //     }
+        // };
     }
 
 }

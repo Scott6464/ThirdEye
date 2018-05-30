@@ -26,9 +26,8 @@ public class GIF {
     int numEvents;
 
 
-    //TODO limit 50 images
-
-
+// TODO: 5/22/2018 greater than 20 events, multiple gifs. call makegif recursively
+    // TODO: 5/22/2018 make picture quality better
 
     public GIF(Context c) {
         this.c = c;
@@ -56,16 +55,50 @@ public class GIF {
         return numEvents;
     }
 
+    /*
+        public int makeGif() {
+            numEvents = 0;
+            Log.i("Gif", "Making gif");
+            AnimatedGIFWriter writer = new AnimatedGIFWriter(true);
+            try {
+                OutputStream os = new FileOutputStream(path + "/output.gif");
+                List<Bitmap> bitmap = new ArrayList();
+                //Bitmap title = BitmapFactory.decodeResource(c.getResources(), R.drawable.eye3);
+                //bitmap.add(getResizedBitmap(title, 320));
+                //int filesDivisor = (int) files.length/50;
+                for (File file : files) {
+                    String fileName = file.getName();
+                    Log.i("filename1 ", fileName);
+                    if (fileName.contains("jpg")) {
+                        numEvents++;
+                        bitmap.add(getResizedBitmap(BitmapFactory.decodeStream
+                                (new FileInputStream(path + "/" + fileName)), 320));
+                    }
+                    if (numEvents % 10 == 0 ) {
+                        break;
+                    }
+                }
+                Bitmap[] bitmapArray = bitmap.toArray(new Bitmap[bitmap.size()]);
+                int[] delayArray = new int[bitmapArray.length];
+                for (int i = 0; i < delayArray.length; i++) {
+                    delayArray[i] = 1000;
+                }
+
+                writer.writeAnimatedGIF(bitmapArray, delayArray, os);
+                //Toast.makeText(getApplicationContext(), "Gif generated.", Toast.LENGTH_LONG).show();
+
+            } catch (Exception e) {
+                Log.e(e.toString(), e.getMessage());
+            }
+            return numEvents;
+        }
+    */
     public int makeGif() {
         numEvents = 0;
         Log.i("Gif", "Making gif");
         AnimatedGIFWriter writer = new AnimatedGIFWriter(true);
         try {
-            OutputStream os = new FileOutputStream(path + "/output.gif");
             List<Bitmap> bitmap = new ArrayList();
-            Bitmap title = BitmapFactory.decodeResource(c.getResources(), R.drawable.eye3);
-            bitmap.add(getResizedBitmap(title, 320));
-            //int filesDivisor = (int) files.length/50;
             for (File file : files) {
                 String fileName = file.getName();
                 Log.i("filename1 ", fileName);
@@ -74,24 +107,35 @@ public class GIF {
                     bitmap.add(getResizedBitmap(BitmapFactory.decodeStream
                             (new FileInputStream(path + "/" + fileName)), 320));
                 }
-                if (numEvents > 50) {
-                    break;
-                }
             }
-            Bitmap[] bitmapArray = bitmap.toArray(new Bitmap[bitmap.size()]);
-            int[] delayArray = new int[bitmapArray.length];
+            // write gifs
+            int[] delayArray = new int[10];
             for (int i = 0; i < delayArray.length; i++) {
                 delayArray[i] = 1000;
             }
-
-            writer.writeAnimatedGIF(bitmapArray, delayArray, os);
-            //Toast.makeText(getApplicationContext(), "Gif generated.", Toast.LENGTH_LONG).show();
-
+            int i = 0;
+            int j = 0;
+            Bitmap[] ba = new Bitmap[10];
+            for (Bitmap b : bitmap) {
+                ba[i] = b;
+                i++;
+                if (i == 10) {
+                    i = 0;
+                    OutputStream os = new FileOutputStream(path + "/" + j + ".gif");
+                    writer.writeAnimatedGIF(ba, delayArray, os);
+                    j++;
+                }
+            }
+            OutputStream os = new FileOutputStream(path + "/" + j + ".gif");
+            writer.writeAnimatedGIF(ba, delayArray, os);
+            return j;
         } catch (Exception e) {
             Log.e(e.toString(), e.getMessage());
         }
-        return numEvents;
+        return 0;
     }
+
+
 
     public Bitmap getResizedBitmap(Bitmap image, int maxSize) {
         int width = image.getWidth();

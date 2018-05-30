@@ -16,21 +16,21 @@ public class MotionDetection {
 
 
     public boolean detectMotion(Bitmap b0, Bitmap b1) {
-        b0 = resizeImage(b0,9);
-        b1 = resizeImage(b1,9);
-//        Log.i(TAG, "Detecting");
-        for (int x=0; x<3; x++) {
-            for(int y=0; y<3; y++) {
+        b0 = resizeImage(b0, 16);
+        b1 = resizeImage(b1, 16);
+//        Log.i(TAG, "width " + Integer.toString(b1.getWidth()));
+        for (int x = 0; x < b1.getWidth(); x++) {
+            for (int y = 0; y < b1.getHeight(); y++) {
                 int pixel = b0.getPixel(x, y);
                 int pixel1 = b1.getPixel(x, y);
                 //Log.i("pixels " + Integer.toString(Color.red(pixel)), Integer.toString(Color.red(pixel1)));
-                if (Math.abs(Color.red(pixel) - Color.red(pixel1)) > 40) {
+                if (Math.abs(Color.red(pixel) - Color.red(pixel1)) > 50) {
                     return true;
                 }
-                if (Math.abs(Color.blue(pixel) - Color.blue(pixel1)) > 40) {
+                if (Math.abs(Color.blue(pixel) - Color.blue(pixel1)) > 50) {
                     return true;
                 }
-                if (Math.abs(Color.green(pixel) - Color.green(pixel1)) > 40) {
+                if (Math.abs(Color.green(pixel) - Color.green(pixel1)) > 50) {
                     return true;
                 }
             }

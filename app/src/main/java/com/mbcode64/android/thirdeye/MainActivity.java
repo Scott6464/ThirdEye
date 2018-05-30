@@ -19,7 +19,6 @@ import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -43,6 +42,8 @@ import java.util.Calendar;
 import java.util.Random;
 
 
+// todo make it a service
+
 public class MainActivity extends AppCompatActivity {
 
 
@@ -62,7 +63,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         startAnimation();
         ActivityCompat.requestPermissions(this, new String[]
-                {Manifest.permission.CAMERA, Manifest.permission.INTERNET, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                {Manifest.permission.CAMERA, Manifest.permission.INTERNET,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO}, 1);
 
         Log.i(TAG, "start up");
         // Configure Google Sign In
@@ -78,8 +80,8 @@ public class MainActivity extends AppCompatActivity {
         // Display the ad
         MobileAds.initialize(this, "ca-app-pub-4239779371303218~2629368045");
         mAdView = findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
+        //AdRequest adRequest = new AdRequest.Builder().build();
+        //mAdView.loadAd(adRequest);
     }
 
     //todo don't save images locally
@@ -167,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
         calendar.set(Calendar.HOUR_OF_DAY, 23);
-        calendar.set(Calendar.MINUTE, 55);
+        calendar.set(Calendar.MINUTE, 45);
         //calendar.add(Calendar.DATE, 1);
         alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, alarmIntent);
@@ -175,8 +177,8 @@ public class MainActivity extends AppCompatActivity {
         Random r = new Random();
         int hour = r.nextInt(4);
         int minute = r.nextInt(59);
-        //hour = 1;
-        //minute = 5;
+        hour = 21;
+        minute = 5;
 
         Intent emailIntent = new Intent(this, EmailAlarm.class);
         PendingIntent emailAlarmIntent = PendingIntent.getBroadcast(this, 1, emailIntent, 0);
@@ -211,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void viewPhotos(View v) {
-        startActivity(new Intent(getApplicationContext(), ImageDisplayActivity.class));
+        startActivity(new Intent(getApplicationContext(), VideoActivity.class));
     }
 
 
