@@ -96,7 +96,7 @@ public class ImageCaptureActivity extends Activity implements MediaRecorder.OnIn
                 }
             }
         });
-        md = new MotionDetection();
+        md = new MotionDetection(this);
         startCameraThread(cameraView);
     }
 

@@ -4,17 +4,41 @@
     android:layout_height="fill_parent"
     android:orientation="vertical">
 
+
     <Button
-        android:id="@+id/capture_video"
+        android:id="@+id/video_button"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Start Video" />
+        android:layout_gravity="right"
+        android:text="Start Motion Detection" />
+
+    <FrameLayout
+        android:id="@+id/image_frame1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/eye1"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:src="@drawable/eye0" />
+
+        <ImageView
+            android:id="@+id/eyeball_image1"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_gravity="center"
+            android:scaleX=".5"
+            android:scaleY=".5"
+            android:src="@drawable/eye1" />
+
+    </FrameLayout>
 
     <SurfaceView
         android:id="@+id/surface_video"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1" />
-
 
 </LinearLayout>

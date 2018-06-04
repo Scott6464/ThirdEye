@@ -1,7 +1,19 @@
 package com.mbcode64.android.thirdeye;
 
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.util.Log;
+
+import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
+import static android.content.Context.MODE_PRIVATE;
 
 /**
  * Created by Scott on 1/14/2018.
@@ -11,11 +23,25 @@ import android.graphics.Color;
 public class MotionDetection {
 
     private String TAG = "Motion Detection";
+    Bitmap originalBitmap, timeStampBitmap;
+    FileOutputStream fos;
+    gDrive myDrive;
+    int i = 0;
+    Context c;
 
-    public MotionDetection() {}
 
+    public MotionDetection(Context c) {
+        this.c = c;
+        myDrive = new gDrive(c, "motion");
+    }
 
-    public boolean detectMotion(Bitmap b0, Bitmap b1) {
+    private static Bitmap rotateImage(Bitmap img, int degree) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(degree);
+        return Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
+    }
+
+    public boolean detectMotion2(Bitmap b0, Bitmap b1) {
         b0 = resizeImage(b0, 16);
         b1 = resizeImage(b1, 16);
 //        Log.i(TAG, "width " + Integer.toString(b1.getWidth()));
@@ -37,6 +63,84 @@ public class MotionDetection {
         }
         return false;
     }
+
+    void saveImage(Bitmap b) {
+
+        final Bitmap bf = b;
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    timeStampBitmap = timeStamp(rotateImage(bf, 90));
+                    fos = c.openFileOutput(Integer.toString(i) + ".jpg", MODE_PRIVATE);
+                    timeStampBitmap.compress(Bitmap.CompressFormat.JPEG, 75, fos);
+                    fos.close();
+                    Log.i("Image Capture", "Motion Detected");
+                    myDrive.uploadEvent(i);
+                    i++;
+                } catch (Exception e) {
+                    Log.e("Still", "Error writing file", e);
+                }
+            }
+        };
+        t.start();
+    }
+
+    /**
+     * Call the function to detect motion
+     *
+     * @param bitmap
+     * @param oldbitmap
+     * @return
+     */
+
+    public boolean detectMotion(Bitmap bitmap, Bitmap oldbitmap) {
+        if (oldbitmap != null && originalBitmap != null && bitmap != null) {
+            //no motion
+            if (!(detectMotion2(oldbitmap, originalBitmap) && detectMotion2(bitmap, originalBitmap))) {
+                return false;
+            }
+            // new background
+            if ((detectMotion2(bitmap, originalBitmap) && !(detectMotion2(bitmap, oldbitmap)))) {
+                Log.i(TAG, "new background");
+                originalBitmap = bitmap;
+                return false;
+            }
+            return detectMotion2(originalBitmap, bitmap);
+        } else {
+            // first
+            originalBitmap = bitmap;
+            return false;
+        }
+
+    }
+
+    /**
+     * Put a timestamp on the photo
+     * Put the eye logo on the photo
+     *
+     * @param src
+     * @return
+     */
+    public Bitmap timeStamp(Bitmap src) {
+
+        Bitmap dest = Bitmap.createBitmap(src.getWidth(), src.getHeight(), Bitmap.Config.ARGB_8888);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String dateTime = sdf.format(Calendar.getInstance().getTime()); // reading local time in the system
+        Canvas cs = new Canvas(dest);
+        Paint tPaint = new Paint();
+        tPaint.setTextSize(50);
+        tPaint.setColor(Color.BLUE);
+        tPaint.setStyle(Paint.Style.FILL);
+        cs.drawBitmap(src, 0f, 0f, null);
+        float height = tPaint.measureText("yY");
+        cs.drawText(dateTime, 500f, height + 15f, tPaint);
+        //draw eye logo
+        Bitmap waterMark = BitmapFactory.decodeResource(c.getResources(), R.drawable.ic_launcher);
+        cs.drawBitmap(waterMark, 0, 0, null);
+        return dest;
+    }
+
 
 
 

@@ -3,6 +3,7 @@ package com.mbcode64.android.thirdeye;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -407,7 +408,7 @@ public class gDrive {
         return df.format(d);
     }
 
-    public String tomorrow() {
+    String tomorrow() {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, 1);
         Date d = cal.getTime();
@@ -416,7 +417,7 @@ public class gDrive {
     }
 
 
-    public void saveJpgToDrive() {
+    void saveJpgToDrive() {
         Log.i("Drive", "Writing jpg to drive");
         final Task<DriveFolder> appFolderTask = mDriveResourceClient.getRootFolder();
         final Task<DriveContents> createContentsTask = mDriveResourceClient.createContents();
@@ -460,6 +461,51 @@ public class gDrive {
  */
                 });
     }
+
+    public void saveMp4ToDrive() {
+        Log.i("Drive", "Writing mp4 to drive");
+        final Task<DriveFolder> appFolderTask = mDriveResourceClient.getRootFolder();
+        final Task<DriveContents> createContentsTask = mDriveResourceClient.createContents();
+        Tasks.whenAll(appFolderTask, createContentsTask)
+                .continueWithTask(new Continuation<Void, Task<DriveFile>>() {
+                    @Override
+                    public Task<DriveFile> then(@NonNull Task<Void> task) {
+                        String title = getTime() + ".mp4";
+                        DriveContents contents = createContentsTask.getResult();
+                        OutputStream outputStream = contents.getOutputStream();
+                        fileToBitstream(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/videoUp.mp4"), outputStream);
+                        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                .setMimeType("video/mp4")
+                                .setTitle(title)
+                                .setStarred(true)
+                                .build();
+                        jpgIndex++;
+                        return mDriveResourceClient.createFile(myDateFolder, changeSet, contents);
+                    }
+//                })
+/*                .addOnSuccessListener(this,
+                        new OnSuccessListener<DriveFile>() {
+                            @Override
+                            public void onSuccess(DriveFile driveFile) {
+                                Log.i(TAG, "File Created");
+                                Toast.makeText(this, "file created " + driveFile.getDriveId().encodeToString(), Toast.LENGTH_LONG).show();
+                                // showMessage(getString(R.string.file_created,
+                                //        driveFile.getDriveId().encodeToString()));
+                                //finish();
+                            }
+                        })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Unable to create file", e);
+                        //showMessage(getString(R.string.file_create_error));
+                        finish();
+                    }
+ */
+                });
+    }
+
+
 
 
     private void fileToBitstream(File file, OutputStream outputStream) {
@@ -554,9 +600,10 @@ public class gDrive {
 
                     if (responseCode == HttpURLConnection.HTTP_OK) {
                         String server_response = readStream(urlConnection.getInputStream());
-                        Log.i("CatalogClient", server_response);
+                        Log.i("email sent", server_response);
+                    } else {
+                        Log.i(TAG, "email http fail " + Integer.toString(responseCode) + url.toString());
                     }
-                    Log.i(TAG, "http success email sent");
                 } catch (MalformedURLException ex) {
                     Log.e("httptest", Log.getStackTraceString(ex));
                 } catch (IOException ex) {

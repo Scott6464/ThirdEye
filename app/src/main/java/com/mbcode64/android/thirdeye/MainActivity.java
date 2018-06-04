@@ -177,16 +177,17 @@ public class MainActivity extends AppCompatActivity {
         Random r = new Random();
         int hour = r.nextInt(4);
         int minute = r.nextInt(59);
-        hour = 21;
-        minute = 5;
+        //hour = 9;
+        //minute = 31;
 
+        Log.i(TAG, "setting alarms");
         Intent emailIntent = new Intent(this, EmailAlarm.class);
         PendingIntent emailAlarmIntent = PendingIntent.getBroadcast(this, 1, emailIntent, 0);
         Calendar calendar1 = Calendar.getInstance();
         calendar1.setTimeInMillis(System.currentTimeMillis());
         calendar1.set(Calendar.HOUR_OF_DAY, hour);
         calendar1.set(Calendar.MINUTE, minute);
-        //calendar1.add(Calendar.DATE, 1);
+        calendar1.add(Calendar.DATE, 1);
 
         alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar1.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, emailAlarmIntent);
