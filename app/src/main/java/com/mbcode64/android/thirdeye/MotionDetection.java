@@ -42,6 +42,8 @@ public class MotionDetection {
     }
 
     public boolean detectMotion2(Bitmap b0, Bitmap b1) {
+
+        myPref myPref = new myPref(c);
         b0 = resizeImage(b0, 16);
         b1 = resizeImage(b1, 16);
 //        Log.i(TAG, "width " + Integer.toString(b1.getWidth()));
@@ -49,20 +51,21 @@ public class MotionDetection {
             for (int y = 0; y < b1.getHeight(); y++) {
                 int pixel = b0.getPixel(x, y);
                 int pixel1 = b1.getPixel(x, y);
-                //Log.i("pixels " + Integer.toString(Color.red(pixel)), Integer.toString(Color.red(pixel1)));
-                if (Math.abs(Color.red(pixel) - Color.red(pixel1)) > 50) {
+//                Log.i("pixels " + Integer.toString(Color.red(pixel)), Integer.toString(Color.red(pixel1)));
+                if (Math.abs(Color.red(pixel) - Color.red(pixel1)) > myPref.sensitivity) {
                     return true;
                 }
-                if (Math.abs(Color.blue(pixel) - Color.blue(pixel1)) > 50) {
+                if (Math.abs(Color.blue(pixel) - Color.blue(pixel1)) > myPref.sensitivity) {
                     return true;
                 }
-                if (Math.abs(Color.green(pixel) - Color.green(pixel1)) > 50) {
+                if (Math.abs(Color.green(pixel) - Color.green(pixel1)) > myPref.sensitivity) {
                     return true;
                 }
             }
         }
         return false;
     }
+
 
     void saveImage(Bitmap b) {
 
@@ -76,7 +79,7 @@ public class MotionDetection {
                     timeStampBitmap.compress(Bitmap.CompressFormat.JPEG, 75, fos);
                     fos.close();
                     Log.i("Image Capture", "Motion Detected");
-                    myDrive.uploadEvent(i);
+                    //myDrive.saveJpgToDrive();
                     i++;
                 } catch (Exception e) {
                     Log.e("Still", "Error writing file", e);
@@ -130,11 +133,12 @@ public class MotionDetection {
         Canvas cs = new Canvas(dest);
         Paint tPaint = new Paint();
         tPaint.setTextSize(50);
-        tPaint.setColor(Color.BLUE);
+        tPaint.setColor(Color.BLACK);
         tPaint.setStyle(Paint.Style.FILL);
         cs.drawBitmap(src, 0f, 0f, null);
         float height = tPaint.measureText("yY");
-        cs.drawText(dateTime, 500f, height + 15f, tPaint);
+        cs.drawText(dateTime, 500f, height + 70f, tPaint);
+        cs.drawText("Third Eye Security App", 500f, height + 5f, tPaint);
         //draw eye logo
         Bitmap waterMark = BitmapFactory.decodeResource(c.getResources(), R.drawable.ic_launcher);
         cs.drawBitmap(waterMark, 0, 0, null);

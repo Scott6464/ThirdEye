@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical">
 
 
-    <Button
-        android:id="@+id/video_button"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        android:text="Start Motion Detection" />
+
 
     <FrameLayout
         android:id="@+id/image_frame1"
@@ -32,13 +27,23 @@
             android:scaleX=".5"
             android:scaleY=".5"
             android:src="@drawable/eye1" />
-
     </FrameLayout>
 
+    <Button
+        android:id="@+id/video_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="right"
+        android:layout_toEndOf="@+id/image_frame1"
+        android:layout_toRightOf="@+id/image_frame1"
+        android:text="Start Motion Detection" />
+
     <SurfaceView
+        android:layout_below="@+id/image_frame1"
         android:id="@+id/surface_video"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1" />
 
-</LinearLayout>
+</RelativeLayout>

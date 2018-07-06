@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
                         Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO}, 1);
 
         Log.i(TAG, "start up");
+
         // Configure Google Sign In
         String webclientid = "287235660811-dp5kmjlhm64t4mh1srp0q3t2cmqs0f4n.apps.googleusercontent.com";
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -84,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
         //mAdView.loadAd(adRequest);
     }
 
-    //todo don't save images locally
 
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
@@ -170,16 +170,17 @@ public class MainActivity extends AppCompatActivity {
         calendar.setTimeInMillis(System.currentTimeMillis());
         calendar.set(Calendar.HOUR_OF_DAY, 23);
         calendar.set(Calendar.MINUTE, 45);
-        //calendar.add(Calendar.DATE, 1);
+//        calendar.add(Calendar.DATE, 1);
         alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
                 AlarmManager.INTERVAL_DAY, alarmIntent);
 
         Random r = new Random();
         int hour = r.nextInt(4);
         int minute = r.nextInt(59);
-        //hour = 9;
-        //minute = 31;
-
+        hour = 4;
+        minute = 25;
+// TODO: 6/8/2018 get rid of audio and storage permissions 
+        // TODO: 6/8/2018 write help page. 
         Log.i(TAG, "setting alarms");
         Intent emailIntent = new Intent(this, EmailAlarm.class);
         PendingIntent emailAlarmIntent = PendingIntent.getBroadcast(this, 1, emailIntent, 0);
@@ -189,9 +190,10 @@ public class MainActivity extends AppCompatActivity {
         calendar1.set(Calendar.MINUTE, minute);
         calendar1.add(Calendar.DATE, 1);
 
-        alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar1.getTimeInMillis(),
-                AlarmManager.INTERVAL_DAY, emailAlarmIntent);
-
+        if (new myPref(this).email) {
+            alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar1.getTimeInMillis(),
+                    AlarmManager.INTERVAL_DAY, emailAlarmIntent);
+        }
 
     }
 
@@ -210,11 +212,11 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void startCamera(View v) {
-        startActivity(new Intent(getApplicationContext(), ImageCaptureActivity.class));
+        startActivity(new Intent(getApplicationContext(), VideoActivity.class));
     }
 
     public void viewPhotos(View v) {
-        startActivity(new Intent(getApplicationContext(), VideoActivity.class));
+        startActivity(new Intent(getApplicationContext(), ImageDisplayActivity.class));
     }
 
 
@@ -239,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
                 return true;
             case R.id.help:
-                startActivity(new Intent(getApplicationContext(), ImageDisplayActivity.class));
+                startActivity(new Intent(getApplicationContext(), AboutActivity.class));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

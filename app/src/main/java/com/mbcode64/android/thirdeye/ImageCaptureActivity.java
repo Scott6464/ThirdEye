@@ -48,7 +48,6 @@ public class ImageCaptureActivity extends Activity implements MediaRecorder.OnIn
     SurfaceHolder holder;
     CameraSurfaceView cameraView;
 
-    //todo photo frequency and fast photos when motion detected.
 
     private static Bitmap rotateImage(Bitmap img, int degree) {
         Matrix matrix = new Matrix();
@@ -165,7 +164,6 @@ public class ImageCaptureActivity extends Activity implements MediaRecorder.OnIn
      * @param cameraView
      */
 
-    // todo camera focus
     private void startCamera(final CameraSurfaceView cameraView) {
         //Log.i(TAG, "Camera started");
         cameraView.capture(new Camera.PictureCallback() {

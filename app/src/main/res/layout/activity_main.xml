@@ -12,16 +12,17 @@
             android:id="@+id/eye"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:src="@drawable/eye0" />
 
         <ImageView
             android:id="@+id/eyeball_image"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:scaleX=".6"
+            android:scaleY=".6"
             android:layout_gravity="center"
-            android:scaleX=".5"
-            android:scaleY=".5"
-            android:src="@drawable/eye1" />
+            android:src="@drawable/eye_yellow" />
 
     </FrameLayout>
     <Button

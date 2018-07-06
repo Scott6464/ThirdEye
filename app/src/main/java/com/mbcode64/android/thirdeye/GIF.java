@@ -21,13 +21,10 @@ public class GIF {
 
     String path;
     File directory;
-    File [] files;
+    File[] files;
     Context c;
     int numEvents;
 
-
-// TODO: 5/22/2018 greater than 20 events, multiple gifs. call makegif recursively
-    // TODO: 5/22/2018 make picture quality better
 
     public GIF(Context c) {
         this.c = c;
@@ -55,86 +52,56 @@ public class GIF {
         return numEvents;
     }
 
-    /*
-        public int makeGif() {
-            numEvents = 0;
-            Log.i("Gif", "Making gif");
-            AnimatedGIFWriter writer = new AnimatedGIFWriter(true);
-            try {
-                OutputStream os = new FileOutputStream(path + "/output.gif");
-                List<Bitmap> bitmap = new ArrayList();
-                //Bitmap title = BitmapFactory.decodeResource(c.getResources(), R.drawable.eye3);
-                //bitmap.add(getResizedBitmap(title, 320));
-                //int filesDivisor = (int) files.length/50;
-                for (File file : files) {
-                    String fileName = file.getName();
-                    Log.i("filename1 ", fileName);
-                    if (fileName.contains("jpg")) {
-                        numEvents++;
-                        bitmap.add(getResizedBitmap(BitmapFactory.decodeStream
-                                (new FileInputStream(path + "/" + fileName)), 320));
-                    }
-                    if (numEvents % 10 == 0 ) {
-                        break;
-                    }
-                }
-                Bitmap[] bitmapArray = bitmap.toArray(new Bitmap[bitmap.size()]);
-                int[] delayArray = new int[bitmapArray.length];
-                for (int i = 0; i < delayArray.length; i++) {
-                    delayArray[i] = 1000;
-                }
-
-                writer.writeAnimatedGIF(bitmapArray, delayArray, os);
-                //Toast.makeText(getApplicationContext(), "Gif generated.", Toast.LENGTH_LONG).show();
-
-            } catch (Exception e) {
-                Log.e(e.toString(), e.getMessage());
-            }
-            return numEvents;
-        }
-    */
     public int makeGif() {
+        myPref myPref = new myPref(c);
         numEvents = 0;
         Log.i("Gif", "Making gif");
         AnimatedGIFWriter writer = new AnimatedGIFWriter(true);
-        try {
-            List<Bitmap> bitmap = new ArrayList();
-            for (File file : files) {
-                String fileName = file.getName();
-                Log.i("filename1 ", fileName);
-                if (fileName.contains("jpg")) {
-                    numEvents++;
-                    bitmap.add(getResizedBitmap(BitmapFactory.decodeStream
+        List<Bitmap> jpgBitmapList = new ArrayList();
+        for (File file : files) {
+            String fileName = file.getName();
+            Log.i("filename1 ", fileName);
+            if (fileName.contains("jpg")) {
+                numEvents++;
+                try {
+                    jpgBitmapList.add(getResizedBitmap(BitmapFactory.decodeStream
                             (new FileInputStream(path + "/" + fileName)), 320));
+                } catch (Exception e) {
                 }
             }
-            // write gifs
-            int[] delayArray = new int[10];
-            for (int i = 0; i < delayArray.length; i++) {
+        }
+
+        // write gifs
+        int numGifs = 0;
+        Bitmap[] ba = new Bitmap[myPref.gif];
+        int[] delayArray = new int[myPref.gif];
+        while (jpgBitmapList.size() > myPref.gif) {
+            for (int i = 0; i < myPref.gif; i++) {
+                ba[i] = jpgBitmapList.remove(i);
                 delayArray[i] = 1000;
             }
-            int i = 0;
-            int j = 0;
-            Bitmap[] ba = new Bitmap[10];
-            for (Bitmap b : bitmap) {
-                ba[i] = b;
-                i++;
-                if (i == 10) {
-                    i = 0;
-                    OutputStream os = new FileOutputStream(path + "/" + j + ".gif");
-                    writer.writeAnimatedGIF(ba, delayArray, os);
-                    j++;
-                }
+            try {
+                Log.i("GIf", path + "/" + numGifs + ".gif");
+                OutputStream os = new FileOutputStream(path + "/" + numGifs + ".gif");
+                writer.writeAnimatedGIF(ba, delayArray, os);
+                numGifs++;
+            } catch (Exception e) {
             }
-            OutputStream os = new FileOutputStream(path + "/" + j + ".gif");
-            writer.writeAnimatedGIF(ba, delayArray, os);
-            return j;
-        } catch (Exception e) {
-            Log.e(e.toString(), e.getMessage());
         }
-        return 0;
+        //last gif
+        for (int i = 0; i < jpgBitmapList.size(); i++) {
+            ba[i] = jpgBitmapList.remove(i);
+            delayArray[i] = 1000;
+        }
+        try {
+            Log.i("GIf", path + "/" + numGifs + ".gif");
+            OutputStream os = new FileOutputStream(path + "/" + numGifs + ".gif");
+            writer.writeAnimatedGIF(ba, delayArray, os);
+            numGifs++;
+        } catch (Exception e) {
+        }
+        return numGifs;
     }
-
 
 
     public Bitmap getResizedBitmap(Bitmap image, int maxSize) {
@@ -150,7 +117,6 @@ public class GIF {
         }
         return Bitmap.createScaledBitmap(image, width, height, true);
     }
-
 
 
 }

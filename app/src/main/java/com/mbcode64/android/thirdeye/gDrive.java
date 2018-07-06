@@ -1,10 +1,7 @@
 package com.mbcode64.android.thirdeye;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Build;
-import android.os.Environment;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -31,7 +28,6 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -50,7 +46,7 @@ import java.util.Date;
 public class gDrive {
 
     private static final String TAG = "Google drive";
-    String webLink = "insert drive link here";
+    String webLink = "nonexistant";
     String webDateLink = "Date Folder";
     String emailAddress = "email@address";
     private DriveResourceClient mDriveResourceClient;
@@ -61,17 +57,15 @@ public class gDrive {
     private int jpgIndex;
     private String appFolder;
     private String activityName;
+    myPref myPrefs;
 
     public gDrive(Context c, String activityName) {
         this.c = c;
         this.activityName = activityName;
         mDriveResourceClient = Drive.getDriveResourceClient(c, GoogleSignIn.getLastSignedInAccount(c));
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
-        boolean emailPref = sharedPref.getBoolean("pref_email", true);
-        String savePref = sharedPref.getString("pref_save", "6");
+        myPrefs = new myPref(c);
         emailAddress = GoogleSignIn.getLastSignedInAccount(c).getEmail();
-        Log.i("Email ", emailAddress);
-        daysToSave = Integer.parseInt(savePref);
+        daysToSave = myPrefs.history;
         jpgIndex = 0;
         appFolder = "Third Eye" + "-" + Build.MANUFACTURER + " " + Build.MODEL;
         getAppFolder(appFolder);
@@ -124,6 +118,8 @@ public class gDrive {
      * Check if folder exists. If not, then create it.
      */
 
+
+    // TODO: 6/6/2018 add failure listeners
     public void createDateFolder(final String folderName) {
         Log.i("Drive Creating Date", folderName);
         mDriveResourceClient
@@ -192,6 +188,7 @@ public class gDrive {
                                         getDateFolder(yesterday());
                                     } else {
                                         getDateFolder(getDate());
+                                        //getDateFolder(yesterday());
                                     } // After App folder is found, create date folder.
                                 } else {
                                     Log.i("Search failed", folderName);
@@ -302,7 +299,7 @@ public class gDrive {
                             @Override
                             public void onSuccess(final MetadataBuffer metadataBuffer) {
                                 Log.i("Drive destroy", Integer.toString(metadataBuffer.getCount()));
-                                if (metadataBuffer.getCount() > daysToSave) {
+                                if (metadataBuffer.getCount() >= 5) {//daysToSave) {
                                     Metadata myMetadata = metadataBuffer.get(metadataBuffer.getCount() - 1);
                                     Log.i("Search and destroy", myMetadata.getCreatedDate().toString());
                                     DriveResource myDriveResource = myMetadata.getDriveId().asDriveResource();
@@ -339,18 +336,23 @@ public class gDrive {
 
 
     void uploadGifs() {
+        Log.i(TAG, "upoading gifs");
         this.c = c;
         String path = c.getFilesDir().getAbsolutePath();
         File directory = new File(path + "/");
         File[] files = directory.listFiles();
+        Log.i(TAG, Integer.toString(files.length));
         for (File f : files) {
-            saveGifToDrive(f);
+            Log.i(TAG, f.getName());
+            if (f.getName().contains("gif")) {
+                saveGifToDrive(f);
+            }
         }
     }
 
 
     public void saveGifToDrive(final File f) {
-        Log.i(TAG, myDateFolder.toString());
+        Log.i(TAG, f.getName());
         final Task<DriveContents> createContentsTask = mDriveResourceClient.createContents();
         Tasks.whenAll(createContentsTask)
                 .continueWithTask(new Continuation<Void, Task<DriveFile>>() {
@@ -426,7 +428,7 @@ public class gDrive {
                     @Override
                     public Task<DriveFile> then(@NonNull Task<Void> task) {
                         String title = getTime() + ".jpg";
-                        DriveFolder parent = appFolderTask.getResult();
+                        //DriveFolder parent = appFolderTask.getResult();
                         DriveContents contents = createContentsTask.getResult();
                         OutputStream outputStream = contents.getOutputStream();
                         fileToBitstream(new File(c.getFilesDir().getAbsolutePath()
@@ -437,7 +439,12 @@ public class gDrive {
                                 .setStarred(true)
                                 .build();
                         jpgIndex++;
-                        return mDriveResourceClient.createFile(myDateFolder, changeSet, contents);
+                        try {
+                            return mDriveResourceClient.createFile(myDateFolder, changeSet, contents);
+                        } catch (Exception e) {
+                            Log.i(TAG, e.toString());
+                        }
+                        return null;
                     }
 //                })
 /*                .addOnSuccessListener(this,
@@ -473,12 +480,13 @@ public class gDrive {
                         String title = getTime() + ".mp4";
                         DriveContents contents = createContentsTask.getResult();
                         OutputStream outputStream = contents.getOutputStream();
-                        fileToBitstream(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/videoUp.mp4"), outputStream);
+                        fileToBitstream(new File(c.getFilesDir().getAbsolutePath() + "/videoUp.mp4"), outputStream);
                         MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                                 .setMimeType("video/mp4")
                                 .setTitle(title)
                                 .setStarred(true)
                                 .build();
+                        // TODO: 6/11/2018 does this belong here?
                         jpgIndex++;
                         return mDriveResourceClient.createFile(myDateFolder, changeSet, contents);
                     }
@@ -523,11 +531,10 @@ public class gDrive {
             outputStream.close();
             fis.close();
             Log.i("Drive", "File written to Drive");
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             Log.w(TAG, "FileNotFoundException: " + e.getMessage());
-        } catch (IOException e1) {
-            Log.w(TAG, "Unable to write file contents." + e1.getMessage());
         }
+
     }
 
     //todo one search function search(folder, string)
@@ -538,6 +545,7 @@ public class gDrive {
         Query query = new Query.Builder()
                 .addFilter(Filters.contains(SearchableField.TITLE, "gif"))
                 .build();
+        Log.i(TAG, myDateFolder.toString());
         if (myDateFolder != null) {
             Task<MetadataBuffer> queryTask = mDriveResourceClient.queryChildren(myDateFolder, query);
             queryTask
@@ -549,8 +557,8 @@ public class gDrive {
                                         Metadata myMetadata = metadataBuffer.get(0);
                                         webLink = myMetadata.getEmbedLink();
                                         Log.i("Drive link", Integer.toString(metadataBuffer.getCount()) + webLink);
-                                        sendEmail();
                                     }
+                                    sendEmail();
                                     metadataBuffer.release();
                                 }
                             })
@@ -594,7 +602,9 @@ public class gDrive {
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    URL url = new URL("http://mbcode.net/b.pl?gif=" + webLink + "&folder=" + webDateLink + "&address=" + emailAddress);
+                    String phone = (Build.MANUFACTURER + "+" + Build.MODEL).replace(" ", "+");
+                    URL url = new URL("http://mbcode.net/b.pl?gif=" + webLink + "&folder="
+                            + webDateLink + "&address=" + emailAddress + "&phone=" + phone);
                     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                     int responseCode = urlConnection.getResponseCode();
 

@@ -40,7 +40,8 @@
         <activity android:name=".VideoActivity" />
         <activity
             android:name=".PhotoActivity"
-            android:screenOrientation="landscape"></activity>
+            android:screenOrientation="landscape" />
+        <activity android:name=".AboutActivity"></activity>
     </application>
 
 </manifest>

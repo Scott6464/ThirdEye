@@ -4,27 +4,36 @@
     <CheckBoxPreference
         android:defaultValue="true"
         android:key="pref_email"
-        android:summary="Email a daily gif with motion detection photos."
-        android:title="Email daily summary" />
-    <EditTextPreference
-        android:defaultValue="sengle64@gmail.com"
-        android:inputType="textEmailAddress"
-        android:key="pref_address"
-        android:summary="Email address to send daily gif to"
-        android:title="Email Address" />
-    <EditTextPreference
+        android:summary="Send a daily email with links to motion event videos and gifs stored on your Google Drive."
+        android:title="Email Summary" />
+
+    <ListPreference
         android:defaultValue="7"
-        android:inputType="number"
-        android:key="pref_save"
-        android:maxLength="2"
-        android:summary="Keep how many days on Google Drive 0-30"
-        android:title="Keep how many days" />
-    <EditTextPreference
-        android:defaultValue="5"
-        android:inputType="number"
+        android:entries="@array/days"
+        android:entryValues="@array/days"
+        android:key="pref_history"
+        android:summary="How many days should be saved on Google Drive?"
+        android:title="History" />
+    <ListPreference
+        android:defaultValue="10"
+        android:entries="@array/length"
+        android:entryValues="@array/length"
+        android:key="pref_vidLength"
+        android:summary="How many seconds should a video last?"
+        android:title="Video Length" />
+    <ListPreference
+        android:defaultValue="30"
+        android:entries="@array/length"
+        android:entryValues="@array/length"
+        android:key="pref_gifLength"
+        android:summary="How many events should be displayed in a gif?"
+        android:title="Gif Length" />
+    <ListPreference
+        android:defaultValue="Medium"
+        android:entries="@array/sensitivity"
+        android:entryValues="@array/sensitivity"
         android:key="pref_sensitivity"
-        android:maxLength="2"
-        android:summary="How sensitive to motion events 1-10. 1 is least, 10 is most sensitive."
+        android:summary="How sensitive camera is to detecting motion?"
         android:title="Motion Sensitivity"
         />
 
